@@ -6,13 +6,15 @@ export const store = reactive({
   userId: localStorage.getItem("userId") || "",
   name: localStorage.getItem("userName") || "",
   image: localStorage.getItem("userImage") || "",
-  login(id: string, name: string) {
+  role: localStorage.getItem("Role") || "",
+  login(id: string, name: string, role: string) {
     this.isLoggedIn = true;
     this.userId = id;
     this.name = name;
     localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("userId", id);
     localStorage.setItem("userName", name);
+    localStorage.setItem("Role", role);
   },
   logout() {
     this.isLoggedIn = false;
@@ -21,6 +23,7 @@ export const store = reactive({
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
+    localStorage.removeItem("Role");
     message.success("Logout successfully");
   },
   updateName(name: string) {

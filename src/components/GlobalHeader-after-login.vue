@@ -34,7 +34,7 @@ const menuItems = computed<MenuProps["items"]>(() => [
   {
     key: "luntan",
     icon: () => h(Icons.BankOutlined),
-    label: h("a", { href: "/forum/together" }, "水声"),
+    label: h("a", { href: "/forum/together/page/1" }, "水声"),
     title: "水声",
   },
   {
@@ -46,7 +46,7 @@ const menuItems = computed<MenuProps["items"]>(() => [
   {
     key: "sutuo",
     icon: () => h(Icons.BulbOutlined),
-    label: h("a", { href: "/", target: "_blank" }, "素拓"),
+    label: h("a", { href: "/score", target: "_blank" }, "素拓"),
     title: "素拓",
   },
   {

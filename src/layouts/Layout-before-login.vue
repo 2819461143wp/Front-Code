@@ -9,12 +9,6 @@
         <router-view />
       </div>
     </a-layout-content>
-
-    <a-layout-footer class="foot">
-      <a href="https://2819461143wp.github.io" target="_blank">
-        <GithubOutlined /> by cwdp.sky
-      </a>
-    </a-layout-footer>
   </a-layout>
 </template>
 

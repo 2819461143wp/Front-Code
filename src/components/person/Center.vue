@@ -2,7 +2,7 @@
   <div class="all">
     <!-- 背景图 -->
     <div>
-      <img class="one" src="../../assets/beijing.png" />
+      <img class="one" src="../../assets/img/beijing.png" />
     </div>
 
     <div class="container">

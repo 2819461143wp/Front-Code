@@ -5,9 +5,9 @@
         <a-list-item v-for="post in posts" :key="post.id">
           <a-list-item-meta>
             <template #title>
-              <a-typography-title :level="3">{{
-                post.title
-              }}</a-typography-title>
+              <a-typography-title :level="3">
+                {{ post.title }}
+              </a-typography-title>
             </template>
             <template #description>
               <p>{{ post.content }}</p>
@@ -21,6 +21,8 @@
           />
         </a-list-item>
       </a-list>
+
+      <!-- 分页组件 -->
       <div style="text-align: center; margin-top: 16px">
         <a-pagination
           v-model:current="currentPage"
@@ -29,46 +31,67 @@
           @change="handlePageChange"
         />
       </div>
-      <p>Total Posts: {{ total }}</p>
+
+      <p>Total Posts: {{ total }} | Total Pages: {{ pages }}</p>
     </a-layout-content>
   </a-layout>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { message } from "ant-design-vue";
 
+const route = useRoute();
+const router = useRouter();
+
 const posts = ref([]);
 const total = ref(0);
+const pageSize = ref(5);
 const currentPage = ref(1);
-const pageSize = ref(10);
+const loading = ref(false);
 
-const fetchPosts = async () => {
+// 获取指定页的帖子
+const fetchPagePosts = async (page: number) => {
+  loading.value = true;
   try {
-    const response = await axios.get("/api/post/GetPosts", {
+    const response = await axios.get("/api/post/GetAllPosts", {
       params: {
-        pageNum: currentPage.value,
+        pageNum: page,
         pageSize: pageSize.value,
       },
     });
     posts.value = response.data.posts;
     total.value = response.data.total;
-    console.log("posts:", posts.value);
   } catch (error) {
     console.error("Error fetching posts:", error);
     message.error("帖子获取失败，请稍后重试");
+  } finally {
+    loading.value = false;
   }
 };
 
-const handlePageChange = (newPage) => {
-  currentPage.value = newPage;
-  fetchPosts();
+// 计算总页数
+const pages = computed(() => {
+  return Math.ceil(total.value / pageSize.value);
+});
+
+// 处理分页切换
+const handlePageChange = (newPage: number) => {
+  router.push(`/forum/together/page/${newPage}`);
 };
 
-onMounted(() => {
-  fetchPosts();
-});
+// 监听路由参数变化
+watch(
+  () => route.params.page,
+  (newPage) => {
+    const page = Number(newPage) || 1;
+    currentPage.value = page;
+    fetchPagePosts(page);
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>

@@ -17,7 +17,7 @@
         <!-- 菜单，深色主题，内联模式 -->
         <a-menu-item
           key="together"
-          @click="() => router.push('/forum/together')"
+          @click="() => router.push('/forum/together/page/1')"
         >
           <!-- 菜单项2 -->
           <video-camera-outlined />
@@ -101,7 +101,7 @@ const selectedKeys = ref<string[]>(["together"]);
   height: 200px; /*logo区域的高度为32px*/
   background: rgba(255, 255, 255, 0.2); /*logo区域的背景色为半透明白色*/
   margin: 16px; /*logo区域的外边距为16px*/
-  background: url("../../assets/logo.png") no-repeat center; /*logo区域的背景图片为logo.png*/
+  background: url("../../assets/img/logo.png") no-repeat center; /*logo区域的背景图片为logo.png*/
 }
 
 .site-layout-sub-header-background {

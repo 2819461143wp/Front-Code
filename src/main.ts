@@ -6,9 +6,11 @@ import "ant-design-vue/dist/reset.css";
 import router from "./router";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
+import { createPinia } from "pinia";
 
 const app = createApp(App);
 app.use(ElementPlus);
 app.use(Antd);
 app.use(router);
+app.use(createPinia());
 app.mount("#app");

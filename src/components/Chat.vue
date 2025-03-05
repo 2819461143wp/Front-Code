@@ -63,7 +63,7 @@
               />
               <img
                 v-else
-                src="F:\dachuang\wp\exercise\src\assets\logo.jpg"
+                src="../assets/img/logo.jpg"
                 alt="助手头像"
                 class="avatar"
               />

@@ -140,7 +140,7 @@ div {
 
 body {
   font-family: Arial, sans-serif;
-  background: url("../background.png") no-repeat center center fixed;
+  background: url("../assets/img/background.png") no-repeat center center fixed;
   background-size: cover;
   padding-top: 50px;
 }

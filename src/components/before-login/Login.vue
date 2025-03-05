@@ -80,16 +80,22 @@ const formState = reactive<FormState>({
 
 const handleSubmit = async () => {
   try {
-    const response = await axios.post("/api/user/login", formState); //axios已经自动转为json格式
-    if (response.data === "登录成功") {
-      const userResponse = await axios.get(`/api/user/${formState.username}`);
+    const userResponse = await axios.post("/api/user/login", formState); //axios已经自动转为json格式
+    if (userResponse.data.id) {
       const characterResponse = await axios.get(
         `/api/character/${userResponse.data.id}`,
       );
-      store.login(userResponse.data.id, characterResponse.data.name);
       message.success("登录成功");
-      // window.location.href = "/";
-      router.push("/");
+      if (userResponse.data.role === "user") {
+        store.login(userResponse.data.id, characterResponse.data.name, "user");
+        console.log(store.role);
+        router.push("/home");
+      }
+      if (userResponse.data.role === "admin") {
+        store.login(userResponse.data.id, characterResponse.data.name, "admin");
+        console.log(store.role);
+        router.push("/admin");
+      }
     } else {
       message.error("登录失败,账号或密码错误");
     }
