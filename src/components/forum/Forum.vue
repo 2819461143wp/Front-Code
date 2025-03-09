@@ -32,28 +32,40 @@
           <span class="nav-text">发帖</span>
           <!-- 菜单文本 -->
         </a-menu-item>
-        <a-menu-item key="2">
+        <a-menu-item
+          key="1"
+          @click="() => router.push('/forum/classify/1/page/1')"
+        >
           <!-- 菜单项2 -->
           <video-camera-outlined />
           <!-- 摄像机图标 -->
           <span class="nav-text">闲置</span>
           <!-- 菜单文本 -->
         </a-menu-item>
-        <a-menu-item key="3">
+        <a-menu-item
+          key="2"
+          @click="() => router.push('/forum/classify/2/page/1')"
+        >
           <!-- 菜单项3 -->
           <upload-outlined />
           <!-- 上传图标 -->
           <span class="nav-text">求助</span>
           <!-- 菜单文本 -->
         </a-menu-item>
-        <a-menu-item key="4">
+        <a-menu-item
+          key="3"
+          @click="() => router.push('/forum/classify/3/page/1')"
+        >
           <!-- 菜单项4 -->
           <Icons.UserOutlined />
           <!-- 用户图标 -->
           <span class="nav-text">搭子</span>
           <!-- 菜单文本 -->
         </a-menu-item>
-        <a-menu-item key="5">
+        <a-menu-item
+          key="4"
+          @click="() => router.push('/forum/classify/4/page/1')"
+        >
           <!-- 菜单项4 -->
           <Icons.UserOutlined />
           <!-- 用户图标 -->

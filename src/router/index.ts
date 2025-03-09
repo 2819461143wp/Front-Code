@@ -11,6 +11,7 @@ import Forum from "../components/forum/Forum.vue";
 import Center from "../components/person/Center.vue";
 import Setting from "../components/person/Setting.vue";
 import Together from "../components/forum/Together.vue";
+import Classify from "../components/forum/Classify.vue";
 import Test from "../components/forum/test.vue";
 import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
@@ -34,6 +35,7 @@ const routes = [
     children: [
       { path: "posting", component: Posting },
       { path: "together/page/:page", component: Together },
+      { path: "classify/:status/page/:page", component: Classify },
       { path: "test", component: Test },
     ],
   },

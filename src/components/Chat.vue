@@ -4,76 +4,92 @@
     <div class="conversations-list">
       <div class="conversations-header">
         <h3>对话列表</h3>
-        <button
+        <el-button
+          type="primary"
           @click="createNewChat"
+          :loading="loading.conversations || loading.sending"
           class="new-chat-btn"
-          :disabled="loading.conversations || loading.sending"
         >
-          新建对话
-        </button>
+          <el-icon><Plus /></el-icon>新建对话
+        </el-button>
       </div>
       <div class="conversations-content">
-        <div v-if="loading.conversations" class="loading-container">
-          <div class="loading-spinner"></div>
-          <span>加载对话列表中...</span>
-        </div>
-        <template v-else>
-          <div
-            v-for="conv in conversations"
-            :key="conv.id"
-            @click="switchConversation(conv)"
-            :class="[
-              'conversation-item',
-              { active: currentConversation?.id === conv.id },
-            ]"
-          >
-            <div class="conversation-title">{{ conv.title || "新对话" }}</div>
-            <div class="conversation-time">
-              {{ formatTime(conv.updateTime, "yyyy-MM-dd HH:mm") }}
+        <el-skeleton :loading="loading.conversations" :rows="3" animated>
+          <template #default>
+            <div
+              v-for="conv in conversations"
+              :key="conv.id"
+              @click="switchConversation(conv)"
+              :class="[
+                'conversation-item',
+                { active: currentConversation?.id === conv.id },
+              ]"
+            >
+              <div class="conversation-header">
+                <el-tooltip
+                  :content="conv.title || '新对话'"
+                  placement="top"
+                  :show-after="1000"
+                >
+                  <div class="conversation-title">
+                    {{ conv.title || "新对话" }}
+                  </div>
+                </el-tooltip>
+                <el-button
+                  v-if="currentConversation?.id === conv.id"
+                  type="primary"
+                  link
+                  @click.stop="handleEditTitle(conv)"
+                >
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+              </div>
+              <div class="conversation-time">
+                {{ formatTime(conv.updateTime, "yyyy-MM-dd HH:mm") }}
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
+        </el-skeleton>
       </div>
     </div>
 
     <!-- 右侧聊天区域 -->
     <div class="chat-main">
-      <!-- 对话内容为空时显示提示 -->
       <div v-if="!currentConversation" class="empty-conversation">
-        请点击左侧对话列表开始聊天
+        选择一个对话或开始新对话
       </div>
+
       <template v-else>
+        <!-- 消息列表 -->
         <div class="chat-messages" ref="messageContainer">
           <div v-if="loading.messages" class="loading-container">
             <div class="loading-spinner"></div>
             <span>加载消息中...</span>
           </div>
+
           <template v-else>
             <div
               v-for="(message, index) in messages"
               :key="index"
               :class="['message', message.role]"
             >
-              <!-- 显示头像 -->
               <img
-                v-if="message.role === 'user'"
-                :src="store.image"
-                alt="用户头像"
-                class="avatar"
+                :class="['avatar', message.role]"
+                :src="
+                  message.role === 'user'
+                    ? store.image
+                    : '/src/assets/img/logo.png'
+                "
+                :alt="message.role"
               />
-              <img
-                v-else
-                src="../assets/img/logo.jpg"
-                alt="助手头像"
-                class="avatar"
-              />
-              <!-- 气泡对话框 -->
-              <div
-                class="bubble"
-                v-html="renderMarkdown(message.content)"
-              ></div>
-              <div class="message-time">
-                {{ formatTime(message.createTime, "HH:mm") }}
+              <div>
+                <div
+                  :class="['bubble', message.role]"
+                  v-html="renderMarkdown(message.content)"
+                ></div>
+                <div class="message-time">
+                  {{ formatTime(message.createTime) }}
+                </div>
               </div>
             </div>
           </template>
@@ -81,22 +97,50 @@
 
         <!-- 输入区域 -->
         <div class="chat-input">
-          <textarea
+          <el-input
             v-model="inputMessage"
-            @keyup.enter.exact="sendMessage"
-            placeholder="输入消息，按Enter发送..."
-            rows="3"
+            type="textarea"
+            :rows="3"
+            placeholder="输入消息..."
             :disabled="loading.sending"
-          ></textarea>
-          <button
-            @click="sendMessage"
-            :disabled="!inputMessage.trim() || loading.sending"
-          >
-            {{ loading.sending ? "发送中..." : "发送" }}
-          </button>
+            @keyup.enter.exact="sendMessage"
+          />
+          <div class="input-actions">
+            <el-button
+              type="primary"
+              @click="sendMessage"
+              :loading="loading.sending"
+              :disabled="!inputMessage.trim()"
+            >
+              发送
+            </el-button>
+          </div>
         </div>
       </template>
     </div>
+
+    <!-- 编辑标题对话框 -->
+    <el-dialog
+      v-model="editTitleDialog.visible"
+      title="修改对话标题"
+      width="30%"
+      :close-on-click-modal="false"
+    >
+      <el-input
+        v-model="editTitleDialog.title"
+        placeholder="请输入新标题"
+        maxlength="50"
+        show-word-limit
+      />
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editTitleDialog.visible = false">取消</el-button>
+          <el-button type="primary" @click="updateConversationTitle">
+            确认
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -105,6 +149,8 @@ import { ref, onMounted, nextTick, watch } from "vue";
 import axios from "axios";
 import { store } from "../store";
 import { marked } from "marked";
+import { ElMessage } from "element-plus";
+import { Plus, Edit } from "@element-plus/icons-vue";
 
 // 状态管理
 const conversations = ref([]);
@@ -113,13 +159,45 @@ const currentConversation = ref(null);
 const inputMessage = ref("");
 const messageContainer = ref(null);
 const userId = store.userId;
-
+// 新增编辑标题相关状态
+const editTitleDialog = ref({
+  visible: false,
+  title: "",
+  conversationId: null,
+});
 // 加载状态管理
 const loading = ref({
   conversations: false,
   messages: false,
   sending: false,
 });
+
+// 处理编辑标题
+const handleEditTitle = (conversation) => {
+  editTitleDialog.value = {
+    visible: true,
+    title: conversation.title,
+    conversationId: conversation.id,
+  };
+};
+
+// 更新对话标题
+const updateConversationTitle = async () => {
+  try {
+    const response = await axios.get("/api/chat/updateConversationTitle", {
+      params: {
+        userId: store.userId,
+        conversationId: editTitleDialog.value.conversationId,
+        title: editTitleDialog.value.title,
+      },
+    });
+    conversations.value = response.data;
+    editTitleDialog.value.visible = false;
+    ElMessage.success("标题更新成功");
+  } catch (error) {
+    ElMessage.error("标题更新失败");
+  }
+};
 
 // 获取对话列表
 const fetchConversations = async () => {
@@ -171,6 +249,7 @@ const fetchMessages = async (conversationId) => {
       `/api/chat/messages?conversationId=${conversationId}`,
     );
     messages.value = response.data;
+    console.log(messages);
     await scrollToBottom();
   } catch (error) {
     console.error("获取消息失败:", error);
@@ -230,12 +309,10 @@ const switchConversation = async (conversation) => {
 const createNewChat = async () => {
   if (loading.value.conversations || loading.value.sending) return;
 
-  // 弹出输入问题页面
   const question = prompt("请输入问题");
   if (question) {
     loading.value.sending = true;
     try {
-      // 调用后端接口发送消息并创建新对话
       const response = await axios.post("/api/chat/sendMessage", null, {
         params: {
           userId,
@@ -244,12 +321,10 @@ const createNewChat = async () => {
       });
 
       if (response.data.success) {
-        // 更新对话列表
         await fetchConversations();
-        // 切换到新创建的对话
-        const newConversation = conversations.value.find(
-          (conv) => conv.title === question.substring(0, 20) + "...",
-        );
+        // 修改这里的查找逻辑
+        const newConversation =
+          conversations.value[conversations.value.length - 1];
         if (newConversation) {
           currentConversation.value = newConversation;
           await fetchMessages(newConversation.id);
@@ -265,7 +340,6 @@ const createNewChat = async () => {
     }
   }
 };
-
 // 滚动到底部
 const scrollToBottom = async () => {
   await nextTick();
@@ -289,35 +363,34 @@ const renderMarkdown = (content) => {
 <style scoped>
 .chat-container {
   display: flex;
-  height: calc(100vh - 66px); /* 减去导航栏的高度 */
-  background-color: #f5f5f5;
+  height: calc(100vh - 66px);
+  background-color: #f0f2f5;
 }
 
 .conversations-list {
-  width: 300px;
-  border-right: 1px solid #e0e0e0;
+  width: 320px;
+  border-right: 1px solid #e8e8e8;
   background-color: white;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 .conversations-header {
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e8e8e8;
+  background-color: #fafafa;
+}
+
+.conversations-header h3 {
+  margin: 0;
+  color: #1f2937;
 }
 
 .new-chat-btn {
   width: 100%;
-  padding: 8px;
-  margin-top: 10px;
-  background-color: #1890ff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  margin-top: 12px;
 }
-
 .new-chat-btn:disabled {
   background-color: #d9d9d9;
   cursor: not-allowed;
@@ -327,31 +400,39 @@ const renderMarkdown = (content) => {
   flex: 1;
   overflow-y: auto;
 }
-
 .conversation-item {
-  padding: 15px 20px;
-  cursor: pointer;
+  padding: 16px 20px;
+  transition: all 0.3s ease;
   border-bottom: 1px solid #f0f0f0;
 }
 
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .conversation-item:hover {
-  background-color: #f5f5f5;
+  background-color: #f9fafb;
 }
 
 .conversation-item.active {
-  background-color: #e6f7ff;
+  background-color: #e5edff;
 }
 
 .conversation-title {
   font-weight: 500;
-  margin-bottom: 5px;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 .conversation-time {
   font-size: 12px;
-  color: #999;
-  margin-top: 5px;
-  text-align: right;
+  color: #6b7280;
+  margin-top: 8px;
 }
 
 .chat-main {
@@ -370,13 +451,20 @@ const renderMarkdown = (content) => {
   color: #666;
 }
 
+.input-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  background-color: white;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .message {
@@ -407,20 +495,52 @@ const renderMarkdown = (content) => {
 
 .bubble {
   padding: 12px 16px;
-  border-radius: 8px;
-  max-width: 70%;
-  word-wrap: break-word;
-  background-color: #e6f7ff;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  line-height: 1.6;
+}
+
+/* 美化 Markdown 内容 */
+.bubble :deep(pre) {
+  background-color: #f6f8fa;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.bubble :deep(code) {
+  font-family: monospace;
+  padding: 2px 4px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.bubble.user :deep(pre),
+.bubble.user :deep(code) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.bubble :deep(p) {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.bubble :deep(ul),
+.bubble :deep(ol) {
+  margin: 8px 0;
+  padding-left: 20px;
 }
 
 .bubble.user {
   background-color: #1890ff;
   color: white;
+  border-radius: 12px 12px 0 12px;
 }
 
 .bubble.assistant {
   background-color: white;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px 12px 12px 0;
 }
 
 .message-time {
@@ -431,22 +551,25 @@ const renderMarkdown = (content) => {
 }
 
 .chat-input {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .chat-input textarea {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  resize: none;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
 }
 
 .chat-input textarea:disabled {
   background-color: #f5f5f5;
   cursor: not-allowed;
+}
+
+.chat-input textarea:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 .chat-input button {

@@ -50,7 +50,7 @@
           存在 {{ validationErrors.length }} 条数据校验错误，请修正后再提交！
         </el-alert>
 
-        <el-table :data="previewData" border height="400px">
+        <el-table :data="previewData" border height="500px">
           <el-table-column
             v-for="(header, index) in excelHeaders"
             :key="index"
@@ -97,6 +97,13 @@
       <el-button @click="fetchLatestData" :loading="exportLoading">
         获取最新数据
       </el-button>
+      <el-button
+        type="text"
+        @click="downloadTemplate"
+        style="margin-left: 10px"
+      >
+        下载模板文件
+      </el-button>
     </el-card>
   </div>
 </template>
@@ -116,11 +123,68 @@ const rowErrors = ref({});
 const sheetNames = ref([]);
 const workbook = ref(null);
 
-// 校验规则（示例）
+const SAMPLE_HEADERS = [
+  "学院",
+  "姓名",
+  "班级",
+  "学号",
+  "德育",
+  "智育",
+  "美育",
+  "体育",
+  "校园",
+  "乡土",
+  "产学",
+  "家庭",
+  "寝室",
+  "志愿时长",
+];
+
+// 数值型字段列表（需要验证数字类型）
+const NUMBER_FIELDS = new Set([
+  "德育",
+  "智育",
+  "美育",
+  "体育",
+  "校园",
+  "乡土",
+  "产学",
+  "家庭",
+  "寝室",
+  "志愿时长",
+]);
+
+// 新校验规则
 const validationRules = {
-  姓名: (value) => !!value || "姓名不能为空",
-  年龄: (value) => (value >= 18 && value <= 60) || "年龄需在18-60之间",
-  邮箱: (value) => /.+@.+\..+/.test(value) || "邮箱格式不正确",
+  // 通用非空校验
+  学院: (value) => !!value?.toString().trim() || "学院不能为空",
+  姓名: (value) => !!value?.toString().trim() || "姓名不能为空",
+  班级: (value) => !!value?.toString().trim() || "班级不能为空",
+
+  // 学号特殊校验
+  学号: (value) => {
+    const val = value?.toString().trim();
+    if (!val) return "学号不能为空";
+    if (!/^\d{4}[a-zA-Z0-9]{6}$/.test(val))
+      return "学号格式不正确（前4位为年份，总长10位）";
+    return true;
+  },
+  // ^ 表示字符串开始
+  // \d{4} 表示4位数字（年份）
+  // [a-zA-Z0-9]{7} 表示7位字母或数字的组合
+  // $ 表示字符串结束
+  // 整体要求：4位年份 + 7位字母数字 = 11位总长度
+
+  // 数值型字段校验
+  ...Array.from(NUMBER_FIELDS).reduce((rules, field) => {
+    rules[field] = (value) => {
+      const num = Number(value);
+      if (isNaN(num)) return `${field}必须为数字`;
+      if (num < 0 || num > 20) return `${field}需在0-20之间`;
+      return true;
+    };
+    return rules;
+  }, {}),
 };
 
 // 计算属性
@@ -146,29 +210,61 @@ const handleFileChange = async (uploadFile) => {
 };
 
 // 切换表
+// 修改后的切换Sheet方法
 const switchSheet = (sheetName) => {
   const worksheet = workbook.value.Sheets[sheetName];
-  const jsonData = utils.sheet_to_json(worksheet, { header: 1, raw: false });
+  const jsonData = utils.sheet_to_json(worksheet, {
+    header: 1,
+    raw: false,
+    defval: "", // 确保空单元格返回空字符串
+  });
+
+  // 表头校验
+  if (!arraysEqual(jsonData[0], SAMPLE_HEADERS)) {
+    ElMessage.error("文件列头与模板不一致，请下载模板文件");
+    previewData.value = [];
+    return;
+  }
 
   excelHeaders.value = jsonData[0];
+
+  // 数据处理
   previewData.value = jsonData.slice(1).map((row, index) => {
     const item = excelHeaders.value.reduce((obj, header, i) => {
-      obj[header] = row[i] || "";
+      obj[header] = (row[i] ?? "").toString().trim(); // 统一转为字符串处理
       return obj;
     }, {});
-    validateRow(item, index); // 初始校验
+    validateRow(item, index);
     return item;
   });
 };
 
-// 单行数据校验
+// 辅助方法：严格比较数组
+const arraysEqual = (a, b) => {
+  if (a?.length !== b?.length) return false;
+  return a.every((val, index) => val === b[index]);
+};
+
+// 修改后的校验方法
 const validateRow = (row, rowIndex) => {
   const errors = [];
-  Object.entries(validationRules).forEach(([field, validate]) => {
-    if (row[field] !== undefined && !validate(row[field])) {
-      errors.push(`${field}: ${validate(row[field])}`);
+
+  // 遍历所有字段
+  excelHeaders.value.forEach((header) => {
+    const validator = validationRules[header];
+    if (validator) {
+      const result = validator(row[header]);
+      if (result !== true) errors.push(result);
     }
   });
+
+  // 检查是否存在额外字段
+  const extraFields = Object.keys(row).filter(
+    (key) => !excelHeaders.value.includes(key),
+  );
+  if (extraFields.length) {
+    errors.push(`存在额外字段：${extraFields.join(", ")}`);
+  }
 
   if (errors.length) {
     rowErrors.value[rowIndex] = errors;
@@ -224,6 +320,13 @@ const fetchLatestData = async () => {
   } finally {
     exportLoading.value = false;
   }
+};
+const downloadTemplate = () => {
+  // 创建空模板工作簿
+  const workbook = utils.book_new();
+  const worksheet = utils.aoa_to_sheet([SAMPLE_HEADERS]);
+  utils.book_append_sheet(workbook, worksheet, "素拓数据");
+  writeFileXLSX(workbook, "素拓表模板.xlsx");
 };
 </script>
 
