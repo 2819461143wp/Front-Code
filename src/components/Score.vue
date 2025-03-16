@@ -1,218 +1,369 @@
-<template>
-  <div class="container">
-    <!-- 总分展示 -->
-    <div class="total-card">
-      <h2>素质拓展总分</h2>
-      <div class="score">{{ totalScore }}</div>
-      <div class="full-mark">满分 100 分</div>
-    </div>
-
-    <!-- 分类卡片 -->
-    <div class="dashboard">
-      <div
-        v-for="(category, index) in categories"
-        :key="category.name"
-        class="category-card"
-        :class="{ active: activeIndex === index }"
-        @click="toggleCard(index)"
-      >
-        <h3>
-          {{ category.name }}
-          <span class="max-score">{{ category.max }}分</span>
-        </h3>
-        <div class="progress-bar">
-          <div
-            class="progress-fill"
-            :style="{ width: (category.score / category.max) * 100 + '%' }"
-          ></div>
-        </div>
-        <div class="current-score">
-          {{ category.score }} / {{ category.max }}
-        </div>
-
-        <!-- 细则列表 -->
-        <div v-if="category.subItems" class="detail-list">
-          <div class="sports-sub">
-            <div
-              v-for="sub in category.subItems"
-              :key="sub.name"
-              class="detail-item"
-            >
-              <span>{{ sub.name }}</span>
-              <span>{{ sub.score }}/{{ sub.max }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
+import axios from "axios";
 
-// 当前激活的卡片索引
-const activeIndex = ref(-1);
+// 学生数据状态
+const studentData = ref(null);
+const activityList = ref([]);
+const totalScore = ref(0);
+const loading = ref(true);
+const error = ref(null);
 
-// 分类数据
-const categories = reactive([
-  {
-    name: "德育",
-    max: 35,
-    score: 28,
-  },
-  {
-    name: "智育",
-    max: 35,
-    score: 31.5,
-  },
-  {
-    name: "美育",
-    max: 10,
-    score: 10,
-  },
-  {
-    name: "体育育",
-    max: 10,
-    score: 5,
-  },
-  {
-    name: "劳育",
-    max: 10,
-    score: 7,
-    subItems: [
-      { name: "家庭", max: 10, score: 2 },
-      { name: "乡土", max: 15, score: 3 },
-      { name: "校园", max: 50, score: 40 },
-      { name: "产学", max: 10, score: 5 },
-      { name: "寝室", max: 15, score: 8 },
-    ],
-  },
-]);
+// 使用数组来存储多个激活的类别
+const activeCategories = ref([]);
 
-// 总分计算
-const totalScore = categories.reduce((sum, c) => sum + c.score, 0);
-
-// 切换卡片状态
-const toggleCard = (index) => {
-  activeIndex.value = activeIndex.value === index ? -1 : index;
+// 分类数据映射
+const categoryMap = {
+  deyu: { name: "德育", title: "德育（35分）", total: 35 },
+  zhiyu: { name: "智育", title: "智育（35分）", total: 35 },
+  tiyu: { name: "体育", title: "体育（10分）", total: 10 },
+  meiyu: { name: "美育", title: "美育（10分）", total: 10 },
+  jiating: { name: "家庭", title: "家庭劳动（10分）", total: 10 },
+  qingshi: { name: "寝室", title: "寝室劳动（15分）", total: 15 },
+  xiaoyuan: { name: "校园", title: "校园劳动（50分）", total: 50 },
+  xiangtu: { name: "乡土", title: "乡土劳动（15分）", total: 15 },
+  chanxue: { name: "产学", title: "产学劳动（10分）", total: 10 },
+  volunteer_time: { name: "志愿", title: "志愿时长", total: 10 },
 };
+
+// 存储处理后的分类数据
+const categories = ref([]);
+
+// 获取学生数据
+const fetchStudentData = async () => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    // 使用当前登录用户ID或固定ID进行测试
+    const userId = 12; // 这里应替换为实际的用户ID获取方式
+    const response = await axios.get(`/api/student/lookfor?user_id=${userId}`);
+
+    // 新的响应格式处理
+    studentData.value = response.data.student;
+    activityList.value = response.data.sutuoList || [];
+
+    // 处理数据并计算总分
+    processStudentData();
+  } catch (err) {
+    console.error("获取学生数据失败:", err);
+    error.value = err.message || "获取数据失败";
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 处理学生数据
+const processStudentData = () => {
+  if (!studentData.value) return;
+
+  const data = studentData.value;
+  let sum = 0;
+  const processedCategories = [];
+
+  // 处理每个分类
+  Object.entries(categoryMap).forEach(([key, config]) => {
+    const score = data[key] || 0;
+
+    // 累加总分（除志愿时长外）
+    if (key !== "volunteer_time") {
+      sum += score;
+    }
+
+    // 从活动列表中筛选出该类别有分数>0的活动
+    const categoryActivities = activityList.value
+      .filter((activity) => activity[key] > 0)
+      .map((activity) => ({
+        date: activity.activity.split('"')[0] || "", // 从活动名提取日期
+        name: activity.activity.replace(/^\d{4}\.\d{1,2}\.\d{1,2}/, "").trim(), // 去掉日期保留名称
+        score: activity[key],
+      }));
+
+    // 构建分类对象
+    processedCategories.push({
+      name: config.name,
+      title: config.title,
+      score: score,
+      total: config.total,
+      activities: categoryActivities,
+    });
+  });
+
+  // 更新状态
+  totalScore.value = sum;
+  categories.value = processedCategories;
+};
+
+// 计算分类的行索引
+const getCategoryRow = (index) => Math.floor(index / 2);
+
+// 获取同一行的分类
+const getSameRowCategories = (categoryName) => {
+  const index = categories.value.findIndex((c) => c.name === categoryName);
+  if (index === -1) return [];
+
+  const rowIndex = getCategoryRow(index);
+  const startIndex = rowIndex * 2;
+  const endIndex = Math.min(startIndex + 1, categories.value.length - 1);
+
+  return categories.value.slice(startIndex, endIndex + 1).map((c) => c.name);
+};
+
+// 切换活动列表的显示状态
+const toggleActivities = (category) => {
+  const sameRowCategories = getSameRowCategories(category);
+
+  if (activeCategories.value.includes(category)) {
+    activeCategories.value = activeCategories.value.filter(
+      (cat) => !sameRowCategories.includes(cat),
+    );
+  } else {
+    const newActiveCategories = [...activeCategories.value];
+    sameRowCategories.forEach((cat) => {
+      if (!newActiveCategories.includes(cat)) {
+        newActiveCategories.push(cat);
+      }
+    });
+    activeCategories.value = newActiveCategories;
+  }
+};
+
+// 计算百分比
+const calculatePercentage = (score, total) => {
+  return Math.min((score / total) * 100, 100);
+};
+
+// 判断是否为劳动类别
+const isLaborCategory = (name) => {
+  return ["家庭", "寝室", "校园", "乡土", "产学"].includes(name);
+};
+
+// 组件加载时获取数据
+onMounted(fetchStudentData);
 </script>
 
+<template>
+  <div class="score-container">
+    <!-- 加载中状态 -->
+    <a-spin :spinning="loading">
+      <!-- 错误提示 -->
+      <a-alert v-if="error" type="error" :message="error" banner />
+
+      <!-- 素拓分模块 -->
+      <a-card class="total-section" :bordered="false" v-if="!loading && !error">
+        <h2>我的素拓分详情</h2>
+        <div class="total-score">{{ totalScore }}</div>
+        <div class="total-full">满分100分</div>
+        <a-progress
+          :percent="calculatePercentage(totalScore, 100)"
+          :stroke-color="{
+            '0%': '#108ee9',
+            '100%': '#87d068',
+          }"
+          :stroke-width="12"
+        />
+      </a-card>
+
+      <div class="category-grid" v-if="!loading && !error">
+        <!-- 动态渲染所有分类卡片 -->
+        <a-card
+          v-for="(category, index) in categories"
+          :key="category.name"
+          class="score-card"
+          :bordered="false"
+          :body-style="{ padding: '16px', position: 'relative' }"
+        >
+          <div class="score-title" @click="toggleActivities(category.name)">
+            {{ category.title }}
+            <down-outlined
+              :rotate="activeCategories.includes(category.name) ? 180 : 0"
+              class="toggle-icon"
+            />
+          </div>
+          <a-progress
+            :percent="calculatePercentage(category.score, category.total)"
+            :stroke-color="
+              isLaborCategory(category.name)
+                ? { '0%': '#ff6b35', '100%': '#ff9e6a' }
+                : { '0%': '#6197ed', '100%': '#6ea1ff' }
+            "
+            :show-info="false"
+            :stroke-width="8"
+          />
+          <div class="score-detail">
+            <span>{{
+              category.name === "志愿" ? "当前时长" : "当前得分"
+            }}</span>
+            <span>{{
+              category.name === "志愿"
+                ? category.score + "/h"
+                : category.score + "/" + category.total
+            }}</span>
+          </div>
+
+          <a-collapse :bordered="false" :activeKey="activeCategories">
+            <a-collapse-panel
+              :key="category.name"
+              :show-arrow="false"
+              class="activity-collapse"
+            >
+              <div class="activity-list-container">
+                <div
+                  v-if="category.activities.length === 0"
+                  class="empty-activities"
+                >
+                  暂无活动记录
+                </div>
+                <div
+                  class="activity-item"
+                  v-for="(activity, idx) in category.activities"
+                  :key="idx"
+                >
+                  <span class="activity-info">
+                    {{ activity.date }} {{ activity.name }}
+                  </span>
+                  <span class="activity-score">
+                    {{ activity.score
+                    }}{{ category.name === "志愿" ? "h" : "分" }}
+                  </span>
+                </div>
+              </div>
+            </a-collapse-panel>
+          </a-collapse>
+        </a-card>
+      </div>
+    </a-spin>
+  </div>
+</template>
 <style scoped>
-/* 保持原有样式基础上添加以下修改 */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.category-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.detail-list {
-  max-height: 0;
-  opacity: 0;
-  transition: all 0.3s ease;
-  padding-top: 0;
-}
-
-.category-card.active .detail-list {
-  max-height: 500px;
-  opacity: 1;
-  padding-top: 1rem;
-}
-
-.sports-sub {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.8rem;
-}
-
 :root {
-  --primary: #2c7be5;
-  --secondary: #6e84a3;
-  --border: #e9ecef;
+  --primary-blue: #6197ed; /* 主蓝 */
+  --primary-orange: #ff6b35; /* 主橙 */
+  --light-bg: #f0f4f8;
+  --card-radius: 12px;
 }
 
-body {
-  font-family: "Segoe UI", system-ui;
-  background: #f8f9fa;
-  padding: 2rem 1rem;
+.score-container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  background-color: #f0f4f8;
+  min-height: calc(100vh - 64px - 16px);
 }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.total-card {
-  grid-column: 1 / -1;
-  background: white;
-  border-radius: 12px;
+/* 总分展示模块 */
+.total-section {
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
   text-align: center;
-  margin-bottom: 1rem;
+  border-radius: 12px !important;
 }
 
-.category-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: 0.2s;
-  cursor: pointer;
-}
-
-.category-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.progress-bar {
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
+.total-score {
+  font-size: 3.5rem;
+  color: #6197ed;
+  font-weight: bold;
   margin: 1rem 0;
 }
 
-.progress-fill {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 3px;
-  transition: width 0.5s;
+.total-full {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 
-.detail-list {
-  max-height: 0;
-  overflow: hidden;
-  transition: 0.3s ease;
-  padding-left: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9em;
-}
-
-.active .detail-list {
-  max-height: 500px;
-  margin-top: 1rem;
-}
-
-/* 体育子项特殊处理 */
-.sports-sub {
+/* 分类模块容器 */
+.category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 单项评分模块 */
+.score-card {
+  border-radius: 12px !important;
+  margin-bottom: 20px;
+}
+
+.score-title {
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-icon {
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.score-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  color: #666;
+}
+
+/* 活动列表样式 */
+.activity-collapse {
+  background: transparent;
+  border: none;
+}
+
+.activity-list-container {
+  padding: 0.5rem 0;
+}
+
+.activity-item {
+  padding: 0.6rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-info {
+  font-size: 14px;
+  color: #333;
+}
+
+.activity-score {
+  font-size: 14px;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.empty-activities {
+  text-align: center;
+  padding: 20px 0;
+  color: #999;
+}
+
+:deep(.ant-collapse-content) {
+  background-color: #f9f9f9;
+}
+
+:deep(.ant-collapse-header) {
+  display: none;
+}
+
+:deep(.ant-collapse-content-box) {
+  padding: 0 !important;
 }
 </style>

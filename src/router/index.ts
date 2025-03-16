@@ -17,7 +17,7 @@ import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
 import Admin from "../components/admin/admin.vue";
 import Exer from "../components/admin/widgets/exer.vue";
-import Excel from "../components/admin/widgets/excel.vue";
+import Excel from "../components/admin/excel.vue";
 
 const routes = [
   { path: "/", component: Empty },

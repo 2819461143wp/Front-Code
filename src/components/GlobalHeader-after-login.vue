@@ -28,7 +28,7 @@ const menuItems = computed<MenuProps["items"]>(() => [
   {
     key: "home",
     icon: () => h(Icons.HomeOutlined),
-    label: h("a", { href: "/" }, "主页"),
+    label: h("a", { href: "/home" }, "主页"),
     title: "主页",
   },
   {
