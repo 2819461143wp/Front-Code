@@ -46,7 +46,7 @@ const menuItems = computed<MenuProps["items"]>(() => [
   {
     key: "sutuo",
     icon: () => h(Icons.BulbOutlined),
-    label: h("a", { href: "/score", target: "_blank" }, "素拓"),
+    label: h("a", { href: "/score", target: "" }, "素拓"),
     title: "素拓",
   },
   {

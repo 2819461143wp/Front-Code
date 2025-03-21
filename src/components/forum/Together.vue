@@ -1,23 +1,31 @@
 <template>
   <a-layout>
     <a-layout-content>
-      <a-list item-layout="vertical" size="middle">
+      <a-list item-layout="vertical" size="large">
         <a-list-item v-for="post in posts" :key="post.id">
           <a-list-item-meta>
             <template #title>
               <a-typography-title :level="3">
                 {{ post.title }}
+                <a-tag :color="getStatusColor(post.status)">
+                  {{ getStatusText(post.status) }}
+                </a-tag>
               </a-typography-title>
             </template>
             <template #description>
               <p>{{ post.content }}</p>
+              <div class="post-meta">
+                <span>发布时间: {{ formatDate(post.created_at) }}</span>
+                <a-divider type="vertical" />
+                <span> <like-outlined /> {{ post.stars_count }} </span>
+              </div>
             </template>
           </a-list-item-meta>
           <img
             v-if="post.image_url"
-            :src="'/' + post.image_url"
+            :src="getImageUrl(post.image_url)"
             alt="Post Image"
-            style="max-width: 200px; max-height: 200px"
+            class="post-image"
           />
         </a-list-item>
       </a-list>
@@ -27,32 +35,76 @@
         <a-pagination
           v-model:current="currentPage"
           :total="total"
-          :page-size="pageSize"
+          :pageSize="pageSize"
           @change="handlePageChange"
+          show-size-changer
+          :pageSizeOptions="['5', '10', '20']"
+          @showSizeChange="onShowSizeChange"
         />
       </div>
-
-      <p>Total Posts: {{ total }} | Total Pages: {{ pages }}</p>
+      <!--      <p>总帖子数: {{ total }} | 总页数: {{ pages }}</p>-->
     </a-layout-content>
   </a-layout>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from "vue";
+import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { message } from "ant-design-vue";
+import { LikeOutlined } from "@ant-design/icons-vue";
+import { Post } from "../../type/post";
 
 const route = useRoute();
 const router = useRouter();
 
-const posts = ref([]);
+const posts = ref<Post[]>([]);
 const total = ref(0);
 const pageSize = ref(5);
 const currentPage = ref(1);
 const loading = ref(false);
 
-// 获取指定页的帖子
+// 获取图片完整URL
+const getImageUrl = (imageUrl: string | null) => {
+  if (!imageUrl) return "";
+  return `http://localhost:8080/${imageUrl}`;
+};
+// 获取状态文本
+const getStatusText = (status: number) => {
+  const statusMap: Record<number, string> = {
+    0: "公告",
+    1: "闲置",
+    2: "求助",
+    3: "搭子",
+    4: "趣事",
+  };
+  return statusMap[status] || "未知";
+};
+
+// 获取状态标签颜色
+const getStatusColor = (status: number) => {
+  const colorMap: Record<number, string> = {
+    0: "red", // 公告用红色
+    1: "green", // 闲置用绿色
+    2: "blue", // 求助用蓝色
+    3: "purple", // 搭子用紫色
+    4: "orange", // 趣事用橙色
+  };
+  return colorMap[status] || "";
+};
+
+// 格式化日期
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const fetchPagePosts = async (page: number) => {
   loading.value = true;
   try {
@@ -65,24 +117,26 @@ const fetchPagePosts = async (page: number) => {
     posts.value = response.data.posts;
     total.value = response.data.total;
   } catch (error) {
-    console.error("Error fetching posts:", error);
-    message.error("帖子获取失败，请稍后重试");
+    console.error("获取帖子失败:", error);
+    message.error("获取帖子失败，请稍后重试");
   } finally {
     loading.value = false;
   }
 };
 
-// 计算总页数
-const pages = computed(() => {
-  return Math.ceil(total.value / pageSize.value);
-});
+// const pages = computed(() => {
+//   return Math.ceil(total.value / pageSize.value);
+// });
 
-// 处理分页切换
 const handlePageChange = (newPage: number) => {
   router.push(`/forum/together/page/${newPage}`);
 };
 
-// 监听路由参数变化
+const onShowSizeChange = (current: number, size: number) => {
+  pageSize.value = size;
+  currentPage.value = current;
+  fetchPagePosts(current);
+};
 watch(
   () => route.params.page,
   (newPage) => {
@@ -95,7 +149,25 @@ watch(
 </script>
 
 <style scoped>
-img {
+.post-image {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: cover;
   margin-top: 16px;
+  border-radius: 4px;
+}
+
+.post-meta {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.ant-list-item {
+  padding: 16px;
+  margin: 8px 0;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

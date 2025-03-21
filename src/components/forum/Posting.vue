@@ -1,54 +1,90 @@
 <template>
   <div class="posting-container">
-    <a-card title="发帖子" class="posting-card">
-      <a-form @submit.prevent="submitPost">
-        <a-form-item label="标题">
+    <a-card class="posting-card" :bordered="false">
+      <div class="card-title">
+        <h2>发布新帖子</h2>
+        <p class="subtitle">分享你的想法...</p>
+      </div>
+
+      <a-form layout="vertical" @submit.prevent="submitPost">
+        <a-form-item>
+          <div class="category-selector">
+            <span class="category-label">选择分类：</span>
+            <a-radio-group
+              v-model:value="selectedCategory"
+              button-style="solid"
+            >
+              <a-radio-button value="1">闲置</a-radio-button>
+              <a-radio-button value="2">求助</a-radio-button>
+              <a-radio-button value="3">搭子</a-radio-button>
+              <a-radio-button value="4">趣事</a-radio-button>
+            </a-radio-group>
+          </div>
+        </a-form-item>
+
+        <a-form-item>
           <a-input
             v-model:value="title"
-            show-count
+            placeholder="请输入标题..."
             :maxlength="20"
-            placeholder="请输入标题"
-          />
+            class="title-input"
+            size="large"
+          >
+            <template #prefix>
+              <FileTextOutlined />
+            </template>
+          </a-input>
         </a-form-item>
-        <a-form-item label="内容">
+
+        <a-form-item>
           <a-textarea
             v-model:value="content"
-            placeholder="请输入内容"
-            auto-size
+            placeholder="分享你的想法..."
+            :auto-size="{ minRows: 6, maxRows: 12 }"
+            class="content-input"
           />
         </a-form-item>
-        <a-form-item label="上传文件">
-          <a-upload
-            action="/upload.do"
-            list-type="picture-card"
-            v-model:fileList="fileList"
-          >
-            <div>
-              <PlusOutlined />
-              <div style="margin-top: 8px">Upload</div>
-            </div>
-          </a-upload>
-        </a-form-item>
-        <!-- 选择帖子属性 -->
-        <a-form-item label="帖子类型">
-          <a-radio-group v-model:value="selectedCategory">
-            <a-radio-button value="1">闲置</a-radio-button>
-            <a-radio-button value="2">求助</a-radio-button>
-            <a-radio-button value="3">搭子</a-radio-button>
-            <a-radio-button value="4">趣事</a-radio-button>
-          </a-radio-group>
-        </a-form-item>
+
         <a-form-item>
-          <a-button type="primary" html-type="submit">提交</a-button>
+          <div class="upload-section">
+            <p class="upload-title"><PaperClipOutlined /> 添加图片</p>
+            <a-upload
+              :action="null"
+              :beforeUpload="() => false"
+              list-type="picture-card"
+              v-model:fileList="fileList"
+              :maxCount="1"
+              accept="image/*"
+            >
+              <div v-if="fileList.length < 1" class="upload-button">
+                <PlusOutlined />
+                <div>点击上传</div>
+              </div>
+            </a-upload>
+          </div>
         </a-form-item>
+
+        <div class="submit-section">
+          <a-button type="primary" html-type="submit" size="large">
+            <template #icon>
+              <SendOutlined />
+            </template>
+            发布帖子
+          </a-button>
+          <a-button size="large" @click="router.back()">取消</a-button>
+        </div>
       </a-form>
     </a-card>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref } from "vue";
-import { PlusOutlined } from "@ant-design/icons-vue";
+import {
+  PlusOutlined,
+  FileTextOutlined,
+  SendOutlined,
+  PaperClipOutlined,
+} from "@ant-design/icons-vue";
 import axios from "axios";
 import { store } from "../../store";
 import { message } from "ant-design-vue";
@@ -91,15 +127,31 @@ const submitPost = async () => {
   formData.append("content", content.value);
   formData.append("status", selectedCategory.value.toString());
 
-  fileList.value.forEach((file) => {
-    if (file.originFileObj) {
-      formData.append("files", file.originFileObj);
+  // 添加调试信息
+  if (fileList.value.length > 0) {
+    const file = fileList.value[0].originFileObj;
+    if (file) {
+      formData.append("file", file);
+      console.log("文件名:", file.name);
+      console.log("文件大小:", file.size);
+      console.log("文件类型:", file.type);
     }
-  });
+  } else {
+    console.log("没有选择文件");
+  }
 
   try {
+    console.log("发送请求前的 FormData 内容:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
     const response = await axios.post("/api/post/Insert", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        // 添加这行以防止浏览器自动设置 boundary
+        Accept: "application/json",
+      },
     });
     if (response.data == "发表贴子成功") {
       message.success("发表贴子成功");
@@ -115,20 +167,80 @@ const submitPost = async () => {
 
 <style scoped>
 .posting-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh;
-  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #f5f5f5;
 }
 
 .posting-card {
-  width: 600px;
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-a-button-group {
+.card-title {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.card-title h2 {
+  font-size: 24px;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.category-selector {
+  margin-bottom: 24px;
+}
+
+.category-label {
+  display: inline-block;
+  margin-right: 16px;
+  color: #595959;
+}
+
+.title-input {
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+.content-input {
+  font-size: 14px;
+  border-radius: 6px;
+  resize: none;
+}
+
+.upload-section {
+  background-color: #fafafa;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.upload-title {
+  margin-bottom: 16px;
+  color: #595959;
+  font-size: 14px;
+}
+
+.upload-button {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c8c8c;
+}
+
+.submit-section {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
 }
 
 :deep(.ant-radio-button-wrapper-checked) {
@@ -137,11 +249,44 @@ a-button-group {
   color: #fff !important;
 }
 
-:deep(.ant-radio-button-wrapper:hover) {
-  color: #1890ff;
+:deep(.ant-radio-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 :deep(.ant-radio-button-wrapper) {
-  transition: all 0.3s;
+  border-radius: 6px !important;
+  padding: 4px 16px;
+}
+
+:deep(.ant-radio-button-wrapper:first-child) {
+  border-radius: 6px !important;
+}
+
+:deep(.ant-radio-button-wrapper:last-child) {
+  border-radius: 6px !important;
+}
+
+:deep(.ant-upload-list-picture-card-container),
+:deep(.ant-upload.ant-upload-select-picture-card) {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+}
+
+@media (max-width: 576px) {
+  .posting-container {
+    padding: 12px;
+  }
+
+  .category-selector {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .submit-section {
+    flex-direction: column;
+  }
 }
 </style>

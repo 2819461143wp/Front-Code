@@ -93,9 +93,10 @@
 import { ref } from "vue";
 import { VideoCameraOutlined, UploadOutlined } from "@ant-design/icons-vue";
 import * as Icons from "@ant-design/icons-vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 
 const onCollapse = (collapsed: boolean, type: string) => {
   console.log(collapsed, type);
@@ -105,7 +106,23 @@ const onBreakpoint = (broken: boolean) => {
   console.log(broken);
 };
 
-const selectedKeys = ref<string[]>(["together"]);
+// 根据路由路径获取当前应该选中的菜单项
+const getSelectedKey = (path: string) => {
+  if (path.includes("/forum/together")) return "together";
+  if (path.includes("/forum/posting")) return "posting";
+  if (path.includes("/forum/classify/1")) return "1";
+  if (path.includes("/forum/classify/2")) return "2";
+  if (path.includes("/forum/classify/3")) return "3";
+  if (path.includes("/forum/classify/4")) return "4";
+  return "together";
+};
+
+const selectedKeys = ref<string[]>([getSelectedKey(route.path)]);
+
+// 监听路由变化
+router.afterEach((to) => {
+  selectedKeys.value = [getSelectedKey(to.path)];
+});
 </script>
 
 <style scoped>

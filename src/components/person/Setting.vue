@@ -1,48 +1,84 @@
 <template>
-  <div class="posting-container">
-    <a-card title="设置" class="posting-card">
-      <a-form @submit.prevent="submitPost">
-        <a-form-item label="头像">
+  <div class="setting-container">
+    <a-card class="setting-card" :bordered="false">
+      <div class="card-header">
+        <h2>个人设置</h2>
+        <p class="subtitle">更新你的个人信息</p>
+      </div>
+
+      <a-form layout="vertical" @submit.prevent="submitPost">
+        <div class="avatar-section">
+          <p class="section-title">头像</p>
           <a-upload
             :data="{ userId: store.userId }"
-            list-type="picture-card"
+            list-type="picture-circle"
             v-model:fileList="fileList"
+            :show-upload-list="false"
           >
-            <div>
-              <PlusOutlined />
-              <div style="margin-top: 8px">Upload</div>
+            <div class="upload-button">
+              <div v-if="fileList.length === 0">
+                <PlusOutlined />
+                <div>上传头像</div>
+              </div>
+              <img
+                v-else
+                :src="previewUrl"
+                alt="avatar"
+                class="avatar-preview"
+              />
             </div>
           </a-upload>
-        </a-form-item>
+        </div>
 
-        <a-form-item label="昵称">
+        <a-form-item>
+          <template #label>
+            <span class="form-label">昵称</span>
+          </template>
           <a-input
             v-model:value="name"
             show-count
             :maxlength="20"
             placeholder="请输入昵称"
-          />
-        </a-form-item>
-
-        <a-form-item label="个人简介">
-          <a-textarea
-            v-model:value="biography"
-            placeholder="请输入个人简介"
-            auto-size
-          />
+            size="large"
+          >
+            <template #prefix>
+              <UserOutlined />
+            </template>
+          </a-input>
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" html-type="submit">提交</a-button>
+          <template #label>
+            <span class="form-label">个人简介</span>
+          </template>
+          <a-textarea
+            v-model:value="biography"
+            placeholder="介绍一下你自己..."
+            :auto-size="{ minRows: 4, maxRows: 6 }"
+            :maxlength="200"
+            show-count
+          />
         </a-form-item>
+
+        <div class="button-group">
+          <a-button
+            type="primary"
+            html-type="submit"
+            size="large"
+            :loading="loading"
+          >
+            保存更改
+          </a-button>
+          <a-button size="large" @click="router.back()">取消</a-button>
+        </div>
       </a-form>
     </a-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { PlusOutlined } from "@ant-design/icons-vue";
+import { ref, computed, onUnmounted } from "vue";
+import { PlusOutlined, UserOutlined } from "@ant-design/icons-vue";
 import axios from "axios";
 import { store } from "../../store";
 import { message } from "ant-design-vue";
@@ -88,18 +124,134 @@ const submitPost = async () => {
     message.error("未连接到后端的相应接口");
   }
 };
+const loading = ref(false);
+// 添加预览图片的计算属性
+const previewUrl = computed(() => {
+  if (fileList.value.length > 0 && fileList.value[0].originFileObj) {
+    return window.URL.createObjectURL(fileList.value[0].originFileObj);
+  }
+  return "";
+});
+
+// 组件卸载时清理 URL 对象
+onUnmounted(() => {
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value);
+  }
+});
 </script>
 
 <style scoped>
-.posting-container {
+.setting-container {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #f5f5f5;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 80vh;
-  background-color: #f0f2f5;
+  align-items: flex-start;
 }
 
-.posting-card {
-  width: 600px;
+.setting-card {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-header h2 {
+  font-size: 24px;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  color: #595959;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.form-label {
+  color: #595959;
+  font-size: 14px;
+}
+
+:deep(.ant-upload.ant-upload-select-picture-circle) {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px dashed #d9d9d9;
+  background-color: #fafafa;
+}
+
+:deep(.ant-upload.ant-upload-select-picture-circle:hover) {
+  border-color: #1890ff;
+}
+
+.upload-button {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #8c8c8c;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+:deep(.ant-input-affix-wrapper) {
+  border-radius: 6px;
+}
+
+:deep(.ant-input) {
+  border-radius: 6px;
+}
+
+.button-group {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+:deep(.ant-btn) {
+  min-width: 120px;
+  border-radius: 6px;
+}
+
+@media (max-width: 576px) {
+  .setting-container {
+    padding: 12px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  :deep(.ant-btn) {
+    width: 100%;
+  }
 }
 </style>

@@ -74,9 +74,10 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import * as Icons from "@ant-design/icons-vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 
 const onCollapse = (collapsed: boolean, type: string) => {
   console.log(collapsed, type);
@@ -86,7 +87,19 @@ const onBreakpoint = (broken: boolean) => {
   console.log(broken);
 };
 
-const selectedKeys = ref<string[]>(["center"]);
+// 根据路由路径获取当前应该选中的菜单项
+const getSelectedKey = (path: string) => {
+  if (path.includes("/person/center")) return "center";
+  if (path.includes("/person/setting")) return "setting";
+  return "center"; // 默认选中个人信息
+};
+
+const selectedKeys = ref<string[]>([getSelectedKey(route.path)]);
+
+// 监听路由变化
+router.afterEach((to) => {
+  selectedKeys.value = [getSelectedKey(to.path)];
+});
 </script>
 
 <style scoped>

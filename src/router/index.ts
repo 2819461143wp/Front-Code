@@ -17,7 +17,8 @@ import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
 import Admin from "../components/admin/admin.vue";
 import Exer from "../components/admin/widgets/exer.vue";
-import Excel from "../components/admin/excel.vue";
+import Excel from "../components/admin/Excel.vue";
+import User from "../components/admin/User.vue";
 
 const routes = [
   { path: "/", component: Empty },
@@ -29,6 +30,7 @@ const routes = [
   { path: "/exer", component: Exer },
   { path: "/caogao", component: caogao },
   { path: "/excel", component: Excel },
+  { path: "/user", component: User },
   {
     path: "/forum",
     component: Forum,
