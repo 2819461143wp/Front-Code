@@ -4,7 +4,7 @@
       <GlobalHeader />
     </a-layout-header>
 
-    <a-layout-content>
+    <a-layout-content :class="{ 'admin-content': isAdminRoute }">
       <div class="components-input-demo-presuffix">
         <router-view />
       </div>
@@ -14,7 +14,15 @@
 
 <script setup lang="ts">
 import GlobalHeader from "../components/before-login/GlobalHeader-before-login.vue";
-import { GithubOutlined } from "@ant-design/icons-vue";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+
+// 判断当前路由是否为 admin 相关路由
+const isAdminRoute = computed(() => {
+  return route.path.startsWith("/admin");
+});
 </script>
 
 <style scoped>

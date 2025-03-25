@@ -1,133 +1,181 @@
 <template>
-  <a-layout style="min-height: 100vh">
-    <!-- 设置布局的最小高度为100vh，填充整个视口高度 -->
-    <a-layout-sider
-      breakpoint="lg"
-      collapsed-width="0"
-      @collapse="onCollapse"
-      @breakpoint="onBreakpoint"
-    >
-      <!-- 设置响应式断点为lg -->
-      <!-- 设置折叠后的宽度为0 -->
-      <!-- 监听折叠事件 -->
-      <!-- 监听断点事件 -->
-      <div class="logo-container">
-        <div class="logo" />
-        <p class="font">大学生高校自驱成长平台管理系统</p>
-      </div>
-      <!-- logo区域 -->
-      <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline">
-        <!-- 菜单，深色主题，内联模式 -->
-        <a-menu-item
-          key="together"
-          @click="() => router.push('/forum/together')"
-        >
-          <!-- 菜单项2 -->
-          <Icons.PieChartOutlined />
-          <!-- 摄像机图标 -->
-          <span class="nav-text">总和</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-        <a-menu-item key="posting" @click="() => router.push('/forum/posting')">
-          <!-- 菜单项1 -->
-          <Icons.PieChartOutlined />
-          <!-- 用户图标 -->
-          <span class="nav-text">发帖</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-        <a-menu-item key="2">
-          <!-- 菜单项2 -->
-          <video-camera-outlined />
-          <!-- 摄像机图标 -->
-          <span class="nav-text">闲置</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-        <a-menu-item key="3">
-          <!-- 菜单项3 -->
-          <upload-outlined />
-          <!-- 上传图标 -->
-          <span class="nav-text">求助</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-        <a-menu-item key="4">
-          <!-- 菜单项4 -->
-          <Icons.UserOutlined />
-          <!-- 用户图标 -->
-          <span class="nav-text">搭子</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-        <a-menu-item key="5">
-          <!-- 菜单项4 -->
-          <Icons.UserOutlined />
-          <!-- 用户图标 -->
-          <span class="nav-text">趣事</span>
-          <!-- 菜单文本 -->
-        </a-menu-item>
-      </a-menu>
-    </a-layout-sider>
-    <a-layout>
-      <a-layout-content :style="{ margin: '0 16px' }">
-        <!-- 设置内容区域的左右外边距为16px -->
-        <div
-          :style="{ padding: '24px', background: '#fff', minHeight: '100vh' }"
-        >
-          <!-- 设置内容区域的内边距为24px，背景色为白色，最小高度为100vh -->
-          <router-view />
-          <!-- 内容文本 -->
+  <div class="admin-container">
+    <el-aside :class="{ 'is-collapsed': isCollapse }">
+      <el-menu
+        router
+        unique-opened
+        :collapse="isCollapse"
+        :default-active="router.currentRoute.value.path"
+      >
+        <!-- Logo区域 -->
+        <div class="logo-container">
+          <img src="/src/assets/img/logo.png" alt="Logo" />
+          <h1 v-show="!isCollapse">大学生自驱成长平台后台管理系统</h1>
+          <el-icon class="collapse-btn" @click="toggleCollapse">
+            <Fold v-if="!isCollapse" />
+            <Expand v-else />
+          </el-icon>
         </div>
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+
+        <!-- 系统管理 -->
+        <el-sub-menu index="/admin/system">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/admin/system/menus">
+            <el-icon><Document /></el-icon>
+            <span>菜单管理</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/system/roles">
+            <el-icon><User /></el-icon>
+            <span>角色管理</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="/admin/user">
+          <template #title>
+            <el-icon><UserFilled /></el-icon>
+            <span>用户管理</span>
+          </template>
+          <el-menu-item index="/admin/user/update">
+            <el-icon><Edit /></el-icon>
+            <span>用户信息修改</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/user/insert">
+            <el-icon><Upload /></el-icon>
+            <span>用户批量创建</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="/admin/sutuo">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>素拓管理</span>
+          </template>
+          <el-menu-item index="/admin/sutuo/excel">
+            <el-icon><Upload /></el-icon>
+            <span>素拓信息上传</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/sutuo/search">
+            <el-icon><Search /></el-icon>
+            <span>素拓信息查询</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/sutuo/update">
+            <el-icon><Edit /></el-icon>
+            <span>素拓信息修改</span>
+          </el-menu-item>
+        </el-sub-menu>
+      </el-menu>
+    </el-aside>
+
+    <div class="main-container" :class="{ 'is-collapsed': isCollapse }">
+      <router-view />
+    </div>
+  </div>
 </template>
 
-<script lang="ts" setup>
-import { ref } from "vue";
-import { VideoCameraOutlined, UploadOutlined } from "@ant-design/icons-vue";
-import * as Icons from "@ant-design/icons-vue";
+<script setup lang="ts">
 import { useRouter } from "vue-router";
-
+import { ref } from "vue";
+import {
+  Setting,
+  User,
+  Document,
+  Fold,
+  Expand,
+  Search,
+} from "@element-plus/icons-vue";
+import { UserFilled, Edit, Upload } from "@element-plus/icons-vue";
 const router = useRouter();
+const isCollapse = ref(false);
 
-const onCollapse = (collapsed: boolean, type: string) => {
-  console.log(collapsed, type);
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value;
 };
-
-const onBreakpoint = (broken: boolean) => {
-  console.log(broken);
-};
-
-const selectedKeys = ref<string[]>(["together"]);
 </script>
 
 <style scoped>
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+}
+
+.main-container {
+  flex: 1;
+  margin-left: 220px;
+  padding: 0; /* Remove padding here */
+  transition: all 0.3s;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  overflow: hidden;
+
+  &.is-collapsed {
+    margin-left: 64px;
+  }
+}
+
 .logo-container {
+  height: 64px;
+  padding: 16px;
   display: flex;
   align-items: center;
+  background-color: #002140;
+  overflow: hidden;
+
+  img {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    transition: all 0.3s;
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 1;
+    transition: all 0.3s;
+  }
+
+  .collapse-btn {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 4px;
+    border-radius: 4px;
+
+    &:hover {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
 }
 
-.logo {
-  height: 50px; /*logo区域的高度为32px*/
-  background: rgba(255, 255, 255, 0.2); /*logo区域的背景色为半透明白色*/
-  margin: 16px; /*logo区域的外边距为16px*/
-  background: url("../../assets/img/logo.png") no-repeat; /*logo区域的背景图片为logo.png*/
-  background-size: contain; /* 等比例缩小图片 */
-}
+/* 添加侧边栏样式 */
+:deep(.el-aside) {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 220px !important;
+  transition: all 0.3s;
+  background-color: #001529;
+  z-index: 1000;
 
-.font {
-  color: #fff; /*字体颜色为白色*/
-  font-size: 10px; /*字体大小为20px*/
-  margin-bottom: 2px; /*外边距为20px*/
-}
+  &.is-collapsed {
+    width: 64px !important;
+  }
 
-.site-layout-sub-header-background {
-  background: #fff; /*<!-- 子头部背景色为白色 -->*/
-}
-
-.site-layout-background {
-  background: #fff; /*<!-- 布局背景色为白色 -->*/
-}
-
-[data-theme="dark"] .site-layout-sub-header-background {
-  background: #141414; /*<!-- 深色主题下子头部背景色为深灰色 -->*/
+  .el-menu {
+    border-right: none;
+    height: 100%;
+  }
 }
 </style>

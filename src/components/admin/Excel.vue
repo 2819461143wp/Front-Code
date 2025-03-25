@@ -320,4 +320,8 @@ const downloadTemplate = () => {
   flex-wrap: wrap;
   gap: 4px;
 }
+.excel-import-export {
+  padding: 16px; /* Add padding here instead */
+  height: 100%;
+}
 </style>

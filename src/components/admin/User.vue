@@ -175,23 +175,18 @@ onMounted(() => {
 
 <style scoped>
 .user-management {
-  padding: 20px;
-  height: calc(100vh - 80px);
+  padding: 16px; /* Add padding here instead */
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
-
-.el-table {
-  flex: 1;
-  margin-top: 20px;
-}
-
 .pagination-container {
-  margin-top: 20px;
+  margin-top: 16px;
+  margin-bottom: 0;
   display: flex;
   justify-content: flex-end;
   background: white;
-  padding: 10px 0;
+  padding: 10px;
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }

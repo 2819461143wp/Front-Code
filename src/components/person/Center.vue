@@ -11,9 +11,7 @@
         <!-- 动态加载头像 -->
         <img
           :src="
-            character?.avatar_url
-              ? '/' + character.avatar_url
-              : '../assets/1.png'
+            character?.avatarUrl ? '/' + character.avatarUrl : '../assets/1.png'
           "
           alt="头像"
         />
@@ -22,10 +20,10 @@
         <p>{{ character?.name || "加载中..." }}</p>
         <div class="info-container">
           <span class="info-item"
-            >粉丝数：{{ character?.fans_count ?? "加载中..." }}</span
+            >粉丝数：{{ character?.fansCount ?? "加载中..." }}</span
           >
           <span class="info-item"
-            >关注数：{{ character?.follow_count ?? "加载中..." }}</span
+            >关注数：{{ character?.followCount ?? "加载中..." }}</span
           >
         </div>
         <p>{{ character?.biography ?? "简介" }}</p>
@@ -59,7 +57,7 @@ const fetchCharacter = async () => {
     // 更新 character 的值
     character.value = response.data;
     console.log("character:", character.value);
-    store.updateImage(character.value?.avatar_url ?? "");
+    store.updateImage(character.value?.avatarUrl ?? "");
   } catch (error) {
     message.error("网络连接不稳定，请稍后再试:");
   }

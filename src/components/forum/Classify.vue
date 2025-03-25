@@ -15,15 +15,15 @@
             <template #description>
               <p>{{ post.content }}</p>
               <div class="post-meta">
-                <span>发布时间: {{ formatDate(post.created_at) }}</span>
+                <span>发布时间: {{ formatDate(post.createdAt) }}</span>
                 <a-divider type="vertical" />
-                <span> <like-outlined /> {{ post.stars_count }} </span>
+                <span> <like-outlined /> {{ post.starsCount }} </span>
               </div>
             </template>
           </a-list-item-meta>
           <img
-            v-if="post.image_url"
-            :src="getImageUrl(post.image_url)"
+            v-if="post.imageUrl"
+            :src="getImageUrl(post.imageUrl)"
             alt="Post Image"
             class="post-image"
           />

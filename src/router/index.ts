@@ -16,7 +16,6 @@ import Test from "../components/forum/test.vue";
 import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
 import Admin from "../components/admin/admin.vue";
-import Exer from "../components/admin/widgets/exer.vue";
 import Excel from "../components/admin/Excel.vue";
 import User from "../components/admin/User.vue";
 
@@ -25,12 +24,8 @@ const routes = [
   { path: "/login", component: Login },
   { path: "/register", component: Register },
   { path: "/forgot", component: Forgot },
-  { path: "/admin", component: Admin },
   { path: "/score", component: Score },
-  { path: "/exer", component: Exer },
   { path: "/caogao", component: caogao },
-  { path: "/excel", component: Excel },
-  { path: "/user", component: User },
   {
     path: "/forum",
     component: Forum,
@@ -51,6 +46,14 @@ const routes = [
   },
   { path: "/home", component: Home },
   { path: "/chat", component: Chat },
+  {
+    path: "/admin",
+    component: Admin,
+    children: [
+      { path: "sutuo/excel", component: Excel },
+      { path: "user/update", component: User },
+    ],
+  },
 ];
 
 const router = createRouter({
