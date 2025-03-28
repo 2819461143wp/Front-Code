@@ -1,7 +1,7 @@
 <template>
   <a-layout>
     <a-layout-content>
-      <a-list item-layout="vertical" size="large">
+      <a-list item-layout="vertical" size="default">
         <a-list-item v-for="post in posts" :key="post.id">
           <a-list-item-meta>
             <template #title>
@@ -180,13 +180,5 @@ watch(
   color: rgba(0, 0, 0, 0.45);
   font-size: 14px;
   margin-top: 8px;
-}
-
-.ant-list-item {
-  padding: 16px;
-  margin: 8px 0;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

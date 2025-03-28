@@ -15,9 +15,10 @@ import Classify from "../components/forum/Classify.vue";
 import Test from "../components/forum/test.vue";
 import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
-import Admin from "../components/admin/admin.vue";
-import Excel from "../components/admin/Excel.vue";
-import User from "../components/admin/User.vue";
+import Admin from "../components/admin/Admin.vue";
+import SutuoInsert from "../components/admin/SutuoInsert.vue";
+import UserUpdate from "../components/admin/UserUpdate.vue";
+import UserInsert from "../components/admin/UserInsert.vue";
 
 const routes = [
   { path: "/", component: Empty },
@@ -50,8 +51,9 @@ const routes = [
     path: "/admin",
     component: Admin,
     children: [
-      { path: "sutuo/excel", component: Excel },
-      { path: "user/update", component: User },
+      { path: "sutuo/excel", component: SutuoInsert },
+      { path: "user/update", component: UserUpdate },
+      { path: "user/insert", component: UserInsert },
     ],
   },
 ];

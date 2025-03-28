@@ -1,106 +1,3 @@
-<template>
-  <div class="excel-import-export">
-    <!-- 导入模块 -->
-    <el-card shadow="hover" class="mb-4">
-      <template #header>
-        <span>Excel 导入</span>
-      </template>
-
-      <el-upload
-        :auto-upload="false"
-        :show-file-list="false"
-        :on-change="handleFileChange"
-        accept=".xlsx, .xls"
-      >
-        <template #trigger>
-          <el-button type="primary" :loading="importLoading">
-            选择 Excel 文件
-          </el-button>
-        </template>
-
-        <div class="mt-2">
-          <el-button
-            type="success"
-            class="mt-2"
-            :disabled="!previewData.length || hasValidationErrors"
-            @click="handleImport"
-            :loading="importLoading"
-          >
-            确认导入
-          </el-button>
-        </div>
-      </el-upload>
-
-      <!-- 数据预览 & 编辑 -->
-      <div v-if="previewData.length" class="mt-4">
-        <el-alert
-          v-if="hasValidationErrors"
-          type="error"
-          show-icon
-          class="mb-2"
-        >
-          存在 {{ validationErrors.length }} 条数据校验错误，请修正后再提交！
-        </el-alert>
-
-        <el-table :data="previewData" border height="500px">
-          <el-table-column
-            v-for="(header, index) in excelHeaders"
-            :key="index"
-            :prop="header"
-            :label="header"
-          >
-            <template #default="{ row, $index }">
-              <el-input
-                v-model="row[header]"
-                @change="validateRow(row, $index)"
-                :class="{ 'error-cell': rowErrors[$index]?.includes(header) }"
-              />
-            </template>
-          </el-table-column>
-
-          <el-table-column label="错误信息" width="200">
-            <template #default="{ $index }">
-              <div v-if="rowErrors[$index]" class="error-messages">
-                <el-tag
-                  v-for="(error, i) in rowErrors[$index]"
-                  :key="i"
-                  type="danger"
-                  size="small"
-                >
-                  {{ error }}
-                </el-tag>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </el-card>
-
-    <!-- 导出模块 -->
-    <el-card shadow="hover">
-      <template #header>
-        <span>Excel 操作</span>
-      </template>
-
-      <el-button
-        type="text"
-        @click="downloadTemplate"
-        style="margin-right: 10px"
-      >
-        下载模板文件
-      </el-button>
-
-      <el-button
-        type="primary"
-        @click="handleExportHash"
-        :disabled="!currentFileHash"
-      >
-        下载原始文件
-      </el-button>
-    </el-card>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed } from "vue";
 import { ElMessage, ElLoading } from "element-plus";
@@ -114,7 +11,6 @@ const previewData = ref([]);
 const excelHeaders = ref([]);
 const rowErrors = ref({});
 const operator = ref(String(store.userId));
-const currentFileHash = ref("");
 const originalFile = ref(null);
 
 const SAMPLE_HEADERS = [
@@ -228,25 +124,19 @@ const handleImport = async () => {
       return;
     }
 
-    // 检查是否有验证错误
     if (hasValidationErrors.value) {
       ElMessage.error("请先修正数据错误");
       return;
     }
 
-    // 创建FormData
     const formData = new FormData();
-    // 直接使用原始上传的文件
     formData.append("file", originalFile.value);
     formData.append("operator", operator.value || String(store.userId));
 
-    // 发送请求
     const response = await axios.post("/api/sutuo/upload", formData);
-
-    currentFileHash.value = response.data.hash;
     ElMessage.success(`成功导入 ${response.data.count} 条数据`);
     previewData.value = [];
-    originalFile.value = null; // 清空原始文件
+    originalFile.value = null;
   } catch (error) {
     console.error("导入失败详情:", error);
     const msg = error.response?.data?.error || error.message;
@@ -256,14 +146,14 @@ const handleImport = async () => {
   }
 };
 
-// 下载原始文件
-const handleExportHash = () => {
-  if (!currentFileHash.value) {
-    ElMessage.warning("请先上传文件");
-    return;
-  }
-  window.open(`/api/sutuo/download/${currentFileHash.value}`, "_blank");
-};
+// // 下载原始文件
+// const handleExportHash = () => {
+//   if (!currentFileHash.value) {
+//     ElMessage.warning("请先上传文件");
+//     return;
+//   }
+//   window.open(`/api/sutuo/download/${currentFileHash.value}`, "_blank");
+// };
 
 // 辅助方法：严格比较数组
 const arraysEqual = (a, b) => {
@@ -307,7 +197,105 @@ const downloadTemplate = () => {
 };
 </script>
 
+<template>
+  <div class="excel-import-export">
+    <el-card shadow="hover" class="flex-card">
+      <template #header>
+        <div class="card-header">
+          <span>素拓信息导入</span>
+          <el-button type="primary" link @click="downloadTemplate">
+            下载模板
+          </el-button>
+        </div>
+      </template>
+
+      <el-upload
+        :auto-upload="false"
+        :show-file-list="false"
+        :on-change="handleFileChange"
+        accept=".xlsx, .xls"
+      >
+        <template #trigger>
+          <el-button type="primary" :loading="importLoading">
+            选择 Excel 文件
+          </el-button>
+        </template>
+
+        <el-button
+          type="success"
+          :disabled="!previewData.length || hasValidationErrors"
+          @click="handleImport"
+          :loading="importLoading"
+          class="ml-2"
+        >
+          确认导入
+        </el-button>
+      </el-upload>
+
+      <!-- 数据预览 & 编辑 -->
+      <div v-if="previewData.length" class="mt-4">
+        <el-alert
+          v-if="hasValidationErrors"
+          type="error"
+          show-icon
+          class="mb-2"
+        >
+          存在 {{ validationErrors.length }} 条数据校验错误，请修正后再提交！
+        </el-alert>
+
+        <el-table :data="previewData" border height="500px">
+          <el-table-column
+            v-for="(header, index) in excelHeaders"
+            :key="index"
+            :prop="header"
+            :label="header"
+          >
+            <template #default="{ row, $index }">
+              <el-input
+                v-model="row[header]"
+                @change="validateRow(row, $index)"
+                :class="{ 'error-cell': rowErrors[$index]?.includes(header) }"
+              />
+            </template>
+          </el-table-column>
+
+          <el-table-column label="错误信息" width="200">
+            <template #default="{ $index }">
+              <div v-if="rowErrors[$index]" class="error-messages">
+                <el-tag
+                  v-for="(error, i) in rowErrors[$index]"
+                  :key="i"
+                  type="danger"
+                  size="small"
+                >
+                  {{ error }}
+                </el-tag>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-card>
+  </div>
+</template>
+
 <style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .error-cell {
   :deep(.el-input__inner) {
     border-color: #ff4d4f;
@@ -320,8 +308,31 @@ const downloadTemplate = () => {
   flex-wrap: wrap;
   gap: 4px;
 }
+
 .excel-import-export {
-  padding: 16px; /* Add padding here instead */
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flex-card {
+  flex: 1;
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:deep(.flex-card .el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+}
+
+:deep(.el-table) {
+  flex: 1;
+  margin-bottom: 16px;
 }
 </style>

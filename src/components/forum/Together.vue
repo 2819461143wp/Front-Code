@@ -1,7 +1,7 @@
 <template>
   <a-layout>
     <a-layout-content>
-      <a-list item-layout="vertical" size="large">
+      <a-list item-layout="vertical" size="default">
         <a-list-item v-for="post in posts" :key="post.id">
           <a-list-item-meta>
             <template #title>

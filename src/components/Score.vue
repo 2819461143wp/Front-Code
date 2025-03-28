@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
 // 学生数据状态

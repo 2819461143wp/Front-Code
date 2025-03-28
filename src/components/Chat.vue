@@ -416,10 +416,6 @@ const renderMarkdown = (content) => {
   background-color: #f9fafb;
 }
 
-.conversation-item.active {
-  background-color: #e5edff;
-}
-
 .conversation-title {
   font-weight: 500;
   color: #1f2937;
@@ -473,24 +469,11 @@ const renderMarkdown = (content) => {
   max-width: 80%;
 }
 
-.message.user {
-  flex-direction: row-reverse;
-}
-
-.message.assistant {
-  flex-direction: row;
-}
-
 .avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   margin-right: 10px;
-}
-
-.avatar.user {
-  margin-right: 0;
-  margin-left: 10px;
 }
 
 .bubble {
@@ -530,19 +513,6 @@ const renderMarkdown = (content) => {
   margin: 8px 0;
   padding-left: 20px;
 }
-
-.bubble.user {
-  background-color: #1890ff;
-  color: white;
-  border-radius: 12px 12px 0 12px;
-}
-
-.bubble.assistant {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px 12px 12px 0;
-}
-
 .message-time {
   font-size: 12px;
   color: #999;
