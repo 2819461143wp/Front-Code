@@ -32,6 +32,21 @@
       </a-form-item>
 
       <a-form-item
+        label="邮箱"
+        name="email"
+        :rules="[
+          { required: true, message: '请输入你的邮箱！' },
+          { type: 'email', message: '请输入有效的邮箱地址！' },
+        ]"
+      >
+        <a-input v-model:value="formState.email">
+          <template #prefix>
+            <MailOutlined class="site-form-item-icon" />
+          </template>
+        </a-input>
+      </a-form-item>
+
+      <a-form-item
         label="验证码"
         name="verificationCode"
         :rules="[{ required: true, message: '请输入验证码！' }]"

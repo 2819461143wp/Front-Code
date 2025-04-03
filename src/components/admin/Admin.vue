@@ -2,12 +2,11 @@
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import {
-  Setting,
   User,
   Document,
   Fold,
   Expand,
-  Search,
+  HomeFilled,
 } from "@element-plus/icons-vue";
 import { UserFilled, Edit, Upload } from "@element-plus/icons-vue";
 const router = useRouter();
@@ -38,12 +37,11 @@ const toggleCollapse = () => {
               <Expand v-else />
             </el-icon>
           </div>
-
           <!-- 系统管理 -->
           <el-sub-menu index="/admin/system">
             <template #title>
-              <el-icon><Setting /></el-icon>
-              <span>系统管理</span>
+              <el-icon><HomeFilled /></el-icon>
+              <span>仪表盘</span>
             </template>
             <el-menu-item index="/admin/system/menus">
               <el-icon><Document /></el-icon>
@@ -77,15 +75,11 @@ const toggleCollapse = () => {
             </template>
             <el-menu-item index="/admin/sutuo/excel">
               <el-icon><Upload /></el-icon>
-              <span>素拓信息上传</span>
+              <span>素拓上传</span>
             </el-menu-item>
-            <el-menu-item index="/admin/sutuo/search">
-              <el-icon><Search /></el-icon>
-              <span>素拓信息查询</span>
-            </el-menu-item>
-            <el-menu-item index="/admin/sutuo/update">
+            <el-menu-item index="/admin/sutuo/list">
               <el-icon><Edit /></el-icon>
-              <span>素拓信息修改</span>
+              <span>素拓信息</span>
             </el-menu-item>
           </el-sub-menu>
         </el-menu>

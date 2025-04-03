@@ -17,6 +17,7 @@ import Score from "../components/Score.vue";
 import caogao from "../components/caogao.vue";
 import Admin from "../components/admin/Admin.vue";
 import SutuoInsert from "../components/admin/SutuoInsert.vue";
+import SutuoList from "../components/admin/SutuoList.vue";
 import UserUpdate from "../components/admin/UserUpdate.vue";
 import UserInsert from "../components/admin/UserInsert.vue";
 
@@ -52,6 +53,7 @@ const routes = [
     component: Admin,
     children: [
       { path: "sutuo/excel", component: SutuoInsert },
+      { path: "sutuo/list", component: SutuoList },
       { path: "user/update", component: UserUpdate },
       { path: "user/insert", component: UserInsert },
     ],
