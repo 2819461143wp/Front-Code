@@ -148,7 +148,8 @@
                   :key="idx"
                 >
                   <span class="activity-info">
-                    {{ activity.date }} {{ activity.name }}
+                    <span class="activity-date">{{ activity.date }}</span>
+                    {{ activity.name }}
                   </span>
                   <span class="activity-score">
                     {{ activity.score
@@ -205,7 +206,7 @@ const fetchStudentData = async () => {
     const userId = 12; // 这里应替换为实际的用户ID获取方式
     const response = await axios.get(`/api/student/lookfor?user_id=${userId}`);
 
-    // 新的响应格式处理
+    // 新地响应格式处理
     studentData.value = response.data.student;
     activityList.value = response.data.sutuoList || [];
 
@@ -241,9 +242,9 @@ const processStudentData = () => {
     const categoryActivities = activityList.value
       .filter((activity) => activity[key] > 0)
       .map((activity) => ({
-        date: activity.activity.split('"')[0] || "",
-        name: activity.activity.replace(/^\d{4}\.\d{1,2}\.\d{1,2}/, "").trim(),
-        score: Math.min(activity[key], config.total), // 限制活动分数不超过最大值
+        date: activity.date,
+        name: activity.activity,
+        score: Math.min(activity[key], config.total),
       }));
 
     // 构建分类对象
@@ -517,11 +518,17 @@ h3 {
   border-bottom: none;
 }
 
-.activity-info {
-  font-size: 14px;
-  color: #333;
+.activity-date {
+  color: #666;
+  margin-right: 8px;
+  font-size: 13px;
 }
 
+.activity-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .activity-score {
   font-size: 14px;
   color: #1890ff;

@@ -53,7 +53,7 @@ import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { message } from "ant-design-vue";
 import { LikeOutlined } from "@ant-design/icons-vue";
-import { Post } from "../../type/post";
+import { Post } from "../../types/post";
 
 const route = useRoute();
 const router = useRouter();

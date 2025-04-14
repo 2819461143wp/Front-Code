@@ -166,6 +166,7 @@ onMounted(() => {
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="studentId" label="学号" width="120" />
         <el-table-column prop="activity" label="活动名称" min-width="150" />
+        <el-table-column prop="date" label="活动日期" width="120" />
 
         <el-table-column
           v-for="item in [

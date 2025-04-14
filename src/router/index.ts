@@ -20,7 +20,10 @@ import SutuoInsert from "../components/admin/SutuoInsert.vue";
 import SutuoList from "../components/admin/SutuoList.vue";
 import UserUpdate from "../components/admin/UserUpdate.vue";
 import UserInsert from "../components/admin/UserInsert.vue";
-
+import SutuoAnalysis from "../components/SutuoAnalysis.vue";
+import PostList from "../components/admin/PostList.vue";
+import PostAudit from "../components/admin/PostAudit.vue";
+import PostDetail from "../components/admin/PostDetail.vue";
 const routes = [
   { path: "/", component: Empty },
   { path: "/login", component: Login },
@@ -52,10 +55,14 @@ const routes = [
     path: "/admin",
     component: Admin,
     children: [
+      { path: "sutuo/analysis", component: SutuoAnalysis },
       { path: "sutuo/excel", component: SutuoInsert },
       { path: "sutuo/list", component: SutuoList },
       { path: "user/update", component: UserUpdate },
       { path: "user/insert", component: UserInsert },
+      { path: "post/list", component: PostList },
+      { path: "post/audit", component: PostAudit },
+      { path: "posts/:id", component: PostDetail },
     ],
   },
 ];

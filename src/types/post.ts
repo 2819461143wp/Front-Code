@@ -1,4 +1,3 @@
-// 在 script 部分添加接口定义
 export interface Post {
   id: number;
   userId: number;
@@ -7,7 +6,8 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   isDeleted: string;
-  imageUrl: string | null;
+  imageUrl: string;
   starsCount: number;
   status: number;
+  allow: number;
 }

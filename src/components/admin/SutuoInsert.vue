@@ -15,6 +15,7 @@ const originalFile = ref(null);
 
 const SAMPLE_HEADERS = [
   "活动名称",
+  "活动日期",
   "学院",
   "姓名",
   "班级",
@@ -47,6 +48,12 @@ const NUMBER_FIELDS = new Set([
 // 校验规则（增强学号校验）
 const validationRules = {
   活动名称: (v) => !!v?.trim() || "活动名称不能为空",
+  活动日期: (v) => {
+    if (!v?.trim()) return "活动日期不能为空";
+    const date = new Date(v);
+    if (isNaN(date.getTime())) return "请输入有效的日期格式";
+    return true;
+  },
   学院: (v) => !!v?.trim() || "学院不能为空",
   姓名: (v) => !!v?.trim() || "姓名不能为空",
   班级: (v) => !!v?.trim() || "班级不能为空",

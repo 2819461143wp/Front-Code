@@ -7,6 +7,10 @@ import {
   Fold,
   Expand,
   HomeFilled,
+  DataAnalysis,
+  DocumentChecked,
+  Memo,
+  List,
 } from "@element-plus/icons-vue";
 import { UserFilled, Edit, Upload } from "@element-plus/icons-vue";
 const router = useRouter();
@@ -31,7 +35,12 @@ const toggleCollapse = () => {
           <!-- Logo区域 -->
           <div class="logo-container">
             <img src="/src/assets/img/logo.png" alt="Logo" />
-            <h1 v-show="!isCollapse">大学生自驱成长平台后台管理系统</h1>
+            <h1
+              v-show="!isCollapse"
+              style="font-size: 16px; font-weight: 500; margin: 0"
+            >
+              大学生自驱成长平台<br />&nbsp&nbsp&nbsp&nbsp后台管理系统
+            </h1>
             <el-icon class="collapse-btn" @click="toggleCollapse">
               <Fold v-if="!isCollapse" />
               <Expand v-else />
@@ -68,11 +77,30 @@ const toggleCollapse = () => {
             </el-menu-item>
           </el-sub-menu>
 
+          <el-sub-menu index="/admin/post">
+            <template #title>
+              <el-icon><Memo /></el-icon>
+              <span>贴子管理</span>
+            </template>
+            <el-menu-item index="/admin/post/audit">
+              <el-icon><DocumentChecked /></el-icon>
+              <span>贴子审核</span>
+            </el-menu-item>
+            <el-menu-item index="/admin/post/list">
+              <el-icon><List /></el-icon>
+              <span>贴子列表</span>
+            </el-menu-item>
+          </el-sub-menu>
+
           <el-sub-menu index="/admin/sutuo">
             <template #title>
               <el-icon><Document /></el-icon>
               <span>素拓管理</span>
             </template>
+            <el-menu-item index="/admin/sutuo/analysis">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>素拓总览</span>
+            </el-menu-item>
             <el-menu-item index="/admin/sutuo/excel">
               <el-icon><Upload /></el-icon>
               <span>素拓上传</span>
@@ -99,8 +127,8 @@ const toggleCollapse = () => {
   width: 100%;
 }
 .main-container {
-  margin-left: 220px;
-  padding: 16px;
+  margin-left: 16px; /* 调整左侧边距 */
+  padding: 16px; /* 调整内容区域内边距 */
   flex: 1;
   transition: all 0.3s;
   min-height: 100vh;
@@ -108,8 +136,17 @@ const toggleCollapse = () => {
   background-color: #f5f7fa;
 
   &.is-collapsed {
-    margin-left: 64px;
+    margin-left: 80px; /* 调整左侧边距 */
   }
+}
+
+.content-container {
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+  width: 100%; /* 设置宽度为父容器的100% */
+  box-sizing: border-box;
 }
 
 .logo-container {

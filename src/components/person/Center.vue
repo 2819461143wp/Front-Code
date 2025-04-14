@@ -43,7 +43,7 @@
 import { ref, onMounted } from "vue"; // 引入 ref 和 onMounted 钩子
 import axios from "axios"; // 引入 axios
 import { store } from "../../store"; // 引入 store
-import { Character } from "../../type/character.ts";
+import { Character } from "../../types/character.ts";
 import { message } from "ant-design-vue"; // 引入接口
 
 // 定义响应式变量，用于存储后端请求的数据
