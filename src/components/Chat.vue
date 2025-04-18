@@ -206,9 +206,10 @@ const fetchConversations = async () => {
     const response = await axios.get(
       `/api/chat/conversations?userId=${userId}`,
     );
-    conversations.value = response.data.sort(
-      (a, b) => new Date(a.updateTime) - new Date(b.updateTime),
-    );
+    // conversations.value = response.data.sort(
+    //   (a, b) => new Date(a.updateTime) - new Date(b.updateTime),
+    // );
+    conversations.value = response.data;
     // 默认展示最近一次对话内容
     if (response.data.length > 0) {
       currentConversation.value = response.data[0];
@@ -302,7 +303,7 @@ const switchConversation = async (conversation) => {
   if (loading.value.messages || loading.value.sending) return;
   currentConversation.value = conversation;
   await fetchMessages(conversation.id);
-  scrollToBottom();
+  await scrollToBottom();
 };
 
 // 创建新对话
@@ -457,67 +458,173 @@ const renderMarkdown = (content) => {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  background-color: white;
-  border-radius: 8px;
+  background-color: #f9f9fb;
+  border-radius: 12px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-
 .message {
   display: flex;
-  align-items: flex-end;
-  max-width: 80%;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  max-width: 90%;
+}
+
+.message.user {
+  margin-left: auto;
+  flex-direction: row-reverse;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  margin-right: 10px;
+  object-fit: cover;
+  margin: 0 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+}
+
+.avatar.user {
+  background-color: #e6f7ff;
 }
 
 .bubble {
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 14px 18px;
+  border-radius: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   line-height: 1.6;
+  position: relative;
+  max-width: 100%;
+}
+
+.bubble.user {
+  background-color: #1890ff;
+  color: white;
+  border-top-right-radius: 2px;
+}
+
+.bubble.assistant {
+  background-color: white;
+  color: #333;
+  border-top-left-radius: 2px;
+}
+
+.bubble.user:after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 15px;
+  border: 8px solid transparent;
+  border-left-color: #1890ff;
+  border-right: 0;
+}
+
+.bubble.assistant:after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 15px;
+  border: 8px solid transparent;
+  border-right-color: white;
+  border-left: 0;
 }
 
 /* 美化 Markdown 内容 */
 .bubble :deep(pre) {
-  background-color: #f6f8fa;
+  background-color: rgba(0, 0, 0, 0.04);
   padding: 16px;
-  border-radius: 6px;
+  border-radius: 8px;
+  margin: 12px 0;
   overflow-x: auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.bubble.user :deep(pre) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .bubble :deep(code) {
-  font-family: monospace;
-  padding: 2px 4px;
+  font-family: "Fira Code", "Source Code Pro", Consolas, monospace;
+  padding: 2px 5px;
+  font-size: 0.9em;
+  border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 3px;
 }
 
-.bubble.user :deep(pre),
 .bubble.user :deep(code) {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .bubble :deep(p) {
-  margin: 0;
+  margin: 0 0 10px 0;
   line-height: 1.6;
+}
+
+.bubble :deep(p:last-child) {
+  margin-bottom: 0;
 }
 
 .bubble :deep(ul),
 .bubble :deep(ol) {
-  margin: 8px 0;
+  margin: 10px 0;
   padding-left: 20px;
 }
+
+.bubble :deep(li) {
+  margin-bottom: 5px;
+}
+
+.bubble :deep(a) {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.bubble.user :deep(a) {
+  color: #e6f7ff;
+  text-decoration: underline;
+}
+
+.bubble :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.bubble :deep(th),
+.bubble :deep(td) {
+  border: 1px solid #eee;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.bubble.user :deep(th),
+.bubble.user :deep(td) {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.bubble :deep(th) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.bubble.user :deep(th) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .message-time {
   font-size: 12px;
   color: #999;
-  margin-top: 5px;
+  margin-top: 6px;
   text-align: right;
+  opacity: 0.8;
+}
+
+.message.user .message-time {
+  text-align: left;
+  color: #999; /* 与助手消息时间相同的颜色 */
+  opacity: 0.8;
 }
 
 .chat-input {
@@ -574,6 +681,39 @@ const renderMarkdown = (content) => {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 10px;
+}
+
+/* 优化空状态样式 */
+.empty-conversation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 16px;
+  color: #666;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 40px;
+}
+
+.empty-conversation:before {
+  content: "💬";
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* 消息加载动画 */
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {

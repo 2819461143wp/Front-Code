@@ -24,6 +24,8 @@ import SutuoAnalysis from "../components/SutuoAnalysis.vue";
 import PostList from "../components/admin/PostList.vue";
 import PostAudit from "../components/admin/PostAudit.vue";
 import PostDetail from "../components/admin/PostDetail.vue";
+import StudentList from "../components/admin/StudentList.vue";
+import KnowledgeBase from "../components/admin/KnowledgeBase.vue";
 const routes = [
   { path: "/", component: Empty },
   { path: "/login", component: Login },
@@ -63,6 +65,8 @@ const routes = [
       { path: "post/list", component: PostList },
       { path: "post/audit", component: PostAudit },
       { path: "posts/:id", component: PostDetail },
+      { path: "student/list", component: StudentList },
+      { path: "knowledge", component: KnowledgeBase },
     ],
   },
 ];

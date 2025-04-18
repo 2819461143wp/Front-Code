@@ -11,6 +11,7 @@ import {
   DocumentChecked,
   Memo,
   List,
+  MessageBox,
 } from "@element-plus/icons-vue";
 import { UserFilled, Edit, Upload } from "@element-plus/icons-vue";
 const router = useRouter();
@@ -101,6 +102,10 @@ const toggleCollapse = () => {
               <el-icon><DataAnalysis /></el-icon>
               <span>素拓总览</span>
             </el-menu-item>
+            <el-menu-item index="/admin/student/list">
+              <el-icon><User /></el-icon>
+              <span>学生素拓信息</span>
+            </el-menu-item>
             <el-menu-item index="/admin/sutuo/excel">
               <el-icon><Upload /></el-icon>
               <span>素拓上传</span>
@@ -110,6 +115,10 @@ const toggleCollapse = () => {
               <span>素拓信息</span>
             </el-menu-item>
           </el-sub-menu>
+          <el-menu-item index="/admin/knowledge">
+            <el-icon><MessageBox /></el-icon>
+            <span>知识库管理</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
     </div>
