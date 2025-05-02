@@ -1,70 +1,44 @@
 <template>
   <a-layout style="min-height: 100vh">
-    <!-- 设置布局的最小高度为100vh，填充整个视口高度 -->
     <a-layout-sider
       breakpoint="lg"
       collapsed-width="0"
       @collapse="onCollapse"
       @breakpoint="onBreakpoint"
+      class="custom-sider"
+      :width="240"
     >
-      <!-- 设置响应式断点为lg -->
-      <!-- 设置折叠后的宽度为0 -->
-      <!-- 监听折叠事件 -->
-      <!-- 监听断点事件 -->
       <div class="logo" />
-      <!-- logo区域 -->
-      <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
-        <!-- 菜单，深色主题，内联模式 -->
-        <!--        <a-menu-item key="together">-->
-        <!--          &lt;!&ndash; 菜单项2 &ndash;&gt;-->
-        <!--          <video-camera-outlined />-->
-        <!--          &lt;!&ndash; 摄像机图标 &ndash;&gt;-->
-        <!--          <span class="nav-text">总和</span>-->
-        <!--          &lt;!&ndash; 菜单文本 &ndash;&gt;-->
-        <!--        </a-menu-item>-->
-        <!--        <a-menu-item key="posting" @click="() => router.push('/forum/posting')">-->
-        <!--          &lt;!&ndash; 菜单项1 &ndash;&gt;-->
-        <!--          <Icons.FormOutlined />-->
-        <!--          &lt;!&ndash; 用户图标 &ndash;&gt;-->
-        <!--          <span class="nav-text">发帖</span>-->
-        <!--          &lt;!&ndash; 菜单文本 &ndash;&gt;-->
-        <!--        </a-menu-item>-->
-        <!--        <a-menu-item key="2">-->
-        <!--          &lt;!&ndash; 菜单项2 &ndash;&gt;-->
-        <!--          <video-camera-outlined />-->
-        <!--          &lt;!&ndash; 摄像机图标 &ndash;&gt;-->
-        <!--          <span class="nav-text">闲置</span>-->
-        <!--          &lt;!&ndash; 菜单文本 &ndash;&gt;-->
-        <!--        </a-menu-item>-->
-        <!--        <a-menu-item key="3">-->
-        <!--          &lt;!&ndash; 菜单项3 &ndash;&gt;-->
-        <!--          <upload-outlined />-->
-        <!--          &lt;!&ndash; 上传图标 &ndash;&gt;-->
-        <!--          <span class="nav-text">求助</span>-->
-        <!--          &lt;!&ndash; 菜单文本 &ndash;&gt;-->
-        <!--        </a-menu-item>-->
+      <a-menu
+        v-model:selectedKeys="selectedKeys"
+        theme="dark"
+        mode="inline"
+        class="custom-menu"
+      >
+        <div class="menu-category">个人中心</div>
         <a-menu-item key="center" @click="() => router.push('/person/center')">
-          <Icons.UserOutlined />
+          <template #icon>
+            <Icons.UserOutlined />
+          </template>
           <span class="nav-text">个人信息</span>
         </a-menu-item>
         <a-menu-item
           key="setting"
           @click="() => router.push('/person/setting')"
         >
-          <Icons.SettingOutlined />
+          <template #icon>
+            <Icons.SettingOutlined />
+          </template>
           <span class="nav-text">设置</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
       <a-layout-content :style="{ margin: '0 16px' }">
-        <!-- 设置内容区域的左右外边距为16px -->
         <div
           :style="{ padding: '24px', background: '#fff', minHeight: '100vh' }"
         >
-          <!-- 设置内容区域的内边距为24px，背景色为白色，最小高度为100vh -->
           <router-view />
-          <!-- 内容文本 -->
         </div>
       </a-layout-content>
     </a-layout>
@@ -104,21 +78,68 @@ router.afterEach((to) => {
 
 <style scoped>
 .logo {
-  height: 200px; /*logo区域的高度为32px*/
-  background: rgba(255, 255, 255, 0.2); /*logo区域的背景色为半透明白色*/
-  margin: 16px; /*logo区域的外边距为16px*/
-  background: url("../../assets/img/logo.png") no-repeat center; /*logo区域的背景图片为logo.png*/
+  height: 200px;
+  background: url("../../assets/img/logo.png") no-repeat center;
+  background-size: 80%;
+  margin: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.site-layout-sub-header-background {
-  background: #fff; /*<!-- 子头部背景色为白色 -->*/
+.custom-sider {
+  box-shadow: 2px 0 6px rgba(0, 21, 41, 0.35);
 }
 
-.site-layout-background {
-  background: #fff; /*<!-- 布局背景色为白色 -->*/
+.custom-menu {
+  padding-top: 12px;
+}
+
+.custom-menu :deep(.ant-menu-item) {
+  height: 50px;
+  line-height: 50px;
+  margin: 4px 0;
+  border-radius: 0 24px 24px 0;
+  margin-right: 16px;
+  transition: all 0.3s ease;
+}
+
+.custom-menu :deep(.ant-menu-item-selected) {
+  background: linear-gradient(
+    to right,
+    #1890ff 0%,
+    rgba(24, 144, 255, 0.5) 100%
+  );
+  color: #fff;
+}
+
+.custom-menu :deep(.ant-menu-item:hover:not(.ant-menu-item-selected)) {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.custom-menu :deep(.ant-menu-item-icon) {
+  font-size: 18px;
+  vertical-align: middle;
+}
+
+.menu-category {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  margin: 16px 16px 8px 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-text {
+  margin-left: 8px;
+  font-size: 15px;
+  transition: color 0.3s ease;
 }
 
 [data-theme="dark"] .site-layout-sub-header-background {
-  background: #141414; /*<!-- 深色主题下子头部背景色为深灰色 -->*/
+  background: #141414;
+}
+
+.site-layout-background {
+  background: #fff;
 }
 </style>

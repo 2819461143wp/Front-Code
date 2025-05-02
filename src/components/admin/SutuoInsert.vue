@@ -31,7 +31,7 @@ const SAMPLE_HEADERS = [
   "寝室",
   "志愿时长",
 ];
-// 数值型字段校验（与后端一致）
+// 数值型字段校验
 const NUMBER_FIELDS = new Set([
   "德育",
   "智育",
@@ -250,7 +250,7 @@ const downloadTemplate = () => {
           存在 {{ validationErrors.length }} 条数据校验错误，请修正后再提交！
         </el-alert>
 
-        <el-table :data="previewData" border height="500px">
+        <el-table :data="previewData" border height="900px">
           <el-table-column
             v-for="(header, index) in excelHeaders"
             :key="index"
